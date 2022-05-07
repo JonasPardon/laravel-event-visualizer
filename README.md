@@ -1,6 +1,4 @@
 
-[<img src="https://github-ads.s3.eu-central-1.amazonaws.com/support-ukraine.svg?t=1" />](https://supportukrainenow.org)
-
 # Laravel package to visualize events with their handlers, including jobs to chain them together
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/jonaspardon/laravel-event-visualizer.svg?style=flat-square)](https://packagist.org/packages/jonaspardon/laravel-event-visualizer)
@@ -10,7 +8,7 @@
 
 Laravel package to visualize events with their handlers, including jobs to chain them together.
 
-Todo: add image
+<img src="./example.png" />
 
 ## Installation
 
