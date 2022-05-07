@@ -19,7 +19,6 @@ class LaravelEventVisualizerServiceProvider extends PackageServiceProvider
             ->name('laravel-event-visualizer')
             ->hasConfigFile()
             ->hasViews()
-            ->hasMigration('create_laravel-event-visualizer_table')
-            ->hasCommand(LaravelEventVisualizerCommand::class);
+            ->hasRoute('web');
     }
 }

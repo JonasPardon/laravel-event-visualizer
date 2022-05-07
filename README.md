@@ -26,30 +26,23 @@ You can install the package via composer:
 composer require jonaspardon/laravel-event-visualizer
 ```
 
-You can publish and run the migrations with:
-
-```bash
-php artisan vendor:publish --tag="laravel-event-visualizer-migrations"
-php artisan migrate
-```
-
 You can publish the config file with:
 
 ```bash
-php artisan vendor:publish --tag="laravel-event-visualizer-config"
+php artisan vendor:publish --tag="event-visualizer-config"
 ```
 
-This is the contents of the published config file:
+This is the contents of the published config file: TODO
 
 ```php
 return [
 ];
 ```
 
-Optionally, you can publish the views using
+You can publish the views with:
 
 ```bash
-php artisan vendor:publish --tag="laravel-event-visualizer-views"
+php artisan vendor:publish --tag="event-visualizer-views"
 ```
 
 ## Usage
