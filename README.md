@@ -32,7 +32,9 @@ php artisan vendor:publish --tag="event-visualizer-views"
 
 ## Usage
 
-This package will currently not auto-discover listeners and jobs.
+Visit `your-app.test/event-visualizer` on a non-production environment.
+
+Initially, this might not show a lot of information as this package will currently not auto-discover listeners and jobs.
 
 To make sure your listeners and jobs are linked together, add the following snippets wherever applicable:
 
