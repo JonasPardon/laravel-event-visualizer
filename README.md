@@ -1,5 +1,5 @@
 
-# Laravel package to visualize events with their handlers, including jobs to chain them together
+# Laravel Event Visualizer
 
 [![Latest Version on Packagist](https://img.shields.io/packagist/v/jonaspardon/laravel-event-visualizer.svg?style=flat-square)](https://packagist.org/packages/jonaspardon/laravel-event-visualizer)
 [![GitHub Tests Action Status](https://img.shields.io/github/workflow/status/jonaspardon/laravel-event-visualizer/run-tests?label=tests)](https://github.com/jonaspardon/laravel-event-visualizer/actions?query=workflow%3Arun-tests+branch%3Amain)

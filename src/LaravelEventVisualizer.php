@@ -3,6 +3,7 @@
 namespace JonasPardon\LaravelEventVisualizer;
 
 use Closure;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 
 class LaravelEventVisualizer
@@ -37,11 +38,6 @@ class LaravelEventVisualizer
         $sanitizedEvents = [];
 
         foreach ($rawEvents as $event => $rawListeners) {
-            if (!$this->showLaravelEvents && !Str::startsWith($event, 'App')) {
-                // Get only our own events, not the default laravel ones
-                continue;
-            }
-
             foreach ($rawListeners as $rawListener) {
                 if (is_string($rawListener)) {
                     $sanitizedEvents[$event][] = $rawListener;
@@ -60,12 +56,17 @@ class LaravelEventVisualizer
         return $sanitizedEvents;
     }
 
-    private function buildMermaidString(array $events): string
+    public function buildMermaidString(array $events): string
     {
         foreach ($events as $event => $listeners) {
+            if (!$this->showLaravelEvents && !Str::startsWith($event, 'App')) {
+                // Get only our own events, not the default laravel ones
+                continue;
+            }
+
             foreach ($listeners as $listener) {
-                // Ignore storing of event history, not very relevant
-                if (Str::contains($listener, StoreEventHistory::class)) {
+                // todo: this currently only ignores listeners. Should also ignore events and jobs.
+                if (Str::contains($listener, $this->classesToIgnore)) {
                     continue;
                 }
 
