@@ -1,17 +1,17 @@
 {
-    "name": ":vendor_slug/:package_slug",
-    "description": ":package_description",
+    "name": "jonaspardon/laravel-event-visualizer",
+    "description": "Laravel package to visualize events with their handlers, including jobs to chain them together",
     "keywords": [
-        ":vendor_name",
+        "JonasPardon",
         "laravel",
-        ":package_slug"
+        "laravel-event-visualizer"
     ],
-    "homepage": "https://github.com/:vendor_slug/:package_slug",
+    "homepage": "https://github.com/jonaspardon/laravel-event-visualizer",
     "license": "MIT",
     "authors": [
         {
-            "name": ":author_name",
-            "email": "author@domain.com",
+            "name": "Jonas Pardon",
+            "email": "jonaspardon@hotmail.com",
             "role": "Developer"
         }
     ],
@@ -34,13 +34,13 @@
     },
     "autoload": {
         "psr-4": {
-            "VendorName\\Skeleton\\": "src",
-            "VendorName\\Skeleton\\Database\\Factories\\": "database/factories"
+            "JonasPardon\\LaravelEventVisualizer\\": "src",
+            "JonasPardon\\LaravelEventVisualizer\\Database\\Factories\\": "database/factories"
         }
     },
     "autoload-dev": {
         "psr-4": {
-            "VendorName\\Skeleton\\Tests\\": "tests"
+            "JonasPardon\\LaravelEventVisualizer\\Tests\\": "tests"
         }
     },
     "scripts": {
@@ -49,15 +49,19 @@
         "test-coverage": "vendor/bin/pest --coverage"
     },
     "config": {
-        "sort-packages": true
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true,
+            "phpstan/extension-installer": true
+        }
     },
     "extra": {
         "laravel": {
             "providers": [
-                "VendorName\\Skeleton\\SkeletonServiceProvider"
+                "JonasPardon\\LaravelEventVisualizer\\LaravelEventVisualizerServiceProvider"
             ],
             "aliases": {
-                "Skeleton": "VendorName\\Skeleton\\Facades\\Skeleton"
+                "LaravelEventVisualizer": "JonasPardon\\LaravelEventVisualizer\\Facades\\LaravelEventVisualizer"
             }
         }
     },

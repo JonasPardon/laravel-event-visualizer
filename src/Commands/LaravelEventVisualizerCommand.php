@@ -1,12 +1,12 @@
 <?php
 
-namespace VendorName\Skeleton\Commands;
+namespace JonasPardon\LaravelEventVisualizer\Commands;
 
 use Illuminate\Console\Command;
 
-class SkeletonCommand extends Command
+class LaravelEventVisualizerCommand extends Command
 {
-    public $signature = 'skeleton';
+    public $signature = 'laravel-event-visualizer';
 
     public $description = 'My command';
 
