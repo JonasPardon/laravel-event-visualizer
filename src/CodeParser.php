@@ -55,21 +55,28 @@ class CodeParser
                 'dispatchSync',
             ],
         );
+        $staticCalls = $this->getStaticCalls(
+            $nodes,
+            ['Bus'],
+            [
+                'dispatch',
+                'dispatchNow',
+                'dispatchSync',
+            ],
+        );
 
-//        $staticCalls = $nodeFinder->find($nodes, function (Node $node) {
-//            return $node instanceof StaticCall
-//                && collect(['dispatch', 'dispatchNow'])->contains($node->name->toString());
-//        });
+        $methodCalls = $methodCalls->map(function (MethodCall $call) use ($imports) {
+            $className = $call->args[0]->value->class?->parts[0];
 
-//        $calls = collect(array_merge($methodCalls, $staticCalls));
-
-        $jobDispatcherCalls = $methodCalls->map(function (MethodCall $call) use ($imports) {
+            return $this->buildFullClassName($className, $imports);
+        });
+        $staticCalls = $staticCalls->map(function (StaticCall $call) use ($imports) {
             $className = $call->args[0]->value->class?->parts[0];
 
             return $this->buildFullClassName($className, $imports);
         });
 
-        return $jobDispatcherCalls;
+        return $methodCalls->merge($staticCalls);
     }
 
     public function getDispatchedEventsFromClass(string $className): Collection
@@ -94,14 +101,28 @@ class CodeParser
                 'dispatchSync',
             ],
         );
+        $staticCalls = $this->getStaticCalls(
+            $nodes,
+            ['Event'],
+            [
+                'dispatch',
+                'dispatchNow',
+                'dispatchSync',
+            ],
+        );
 
-        $eventDispatcherCalls = $methodCalls->map(function (MethodCall $call) use ($imports) {
+        $methodCalls = $methodCalls->map(function (MethodCall $call) use ($imports) {
+            $className = $call->args[0]->value->class?->parts[0];
+
+            return $this->buildFullClassName($className, $imports);
+        });
+        $staticCalls = $staticCalls->map(function (StaticCall $call) use ($imports) {
             $className = $call->args[0]->value->class?->parts[0];
 
             return $this->buildFullClassName($className, $imports);
         });
 
-        return $eventDispatcherCalls;
+        return $methodCalls->merge($staticCalls);
     }
 
     private function getImports(array $nodes): Collection
@@ -151,6 +172,23 @@ class CodeParser
                 && collect($varNames)->contains(($node->var->name))
                 && collect($callNames)->contains($node->name->toString())
                 && !$node->args[0]->value instanceof Node\Expr\Variable; // When calling jobDispatcher->dispatch($job)
+        });
+
+        return collect($methodCalls);
+    }
+
+    private function getStaticCalls(
+        array $nodes,
+        array $classNames,
+        array $callNames,
+    ): Collection {
+        $nodeFinder = new NodeFinder();
+
+        $methodCalls = $nodeFinder->find($nodes, function (Node $node) use ($classNames, $callNames) {
+            return $node instanceof StaticCall
+                && collect($classNames)->contains(($node->class->toString()))
+                && collect($callNames)->contains($node->name->toString())
+                && !$node->args[0]->value instanceof Node\Expr\Variable; // When calling Bus::dispatch($job)
         });
 
         return collect($methodCalls);
