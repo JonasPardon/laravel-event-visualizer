@@ -57,18 +57,18 @@ Refer to the table below for support.
 |                               | `$jobDispatcher->dispatchToQueue(new Job())`       | yes       |
 |                               | `$jobDispatcher->dispatchAfterResponse(new Job())` | yes       |
 |                               | `$eventDispatcher->dispatch(new Event())`          | yes       |
-| Static call with variable     | `Bus::dispatch($job)`                              | no        |
-|                               | `Bus::dispatchNow($job)`                           | no        |
-|                               | `Bus::dispatchSync($job)`                          | no        |
-|                               | `Bus::dispatchToQueue($job)`                       | no        |
-|                               | `Bus::dispatchAfterResponse($job)`                 | no        |
-|                               | `Event::dispatch($event)`                          | no        |
-| Method call with variable     | `$jobDispatcher->dispatch($job)`                   | no        |
-|                               | `$jobDispatcher->dispatchNow($job)`                | no        |
-|                               | `$jobDispatcher->dispatchSync($job)`               | no        |
-|                               | `$jobDispatcher->dispatchToQueue($job)`            | no        |
-|                               | `$jobDispatcher->dispatchAfterResponse($job)`      | no        |
-|                               | `$eventDispatcher->dispatch($event)`               | no        |
+| Static call with variable     | `Bus::dispatch($job)`                              | yes (WIP) |
+|                               | `Bus::dispatchNow($job)`                           | yes (WIP) |
+|                               | `Bus::dispatchSync($job)`                          | yes (WIP) |
+|                               | `Bus::dispatchToQueue($job)`                       | yes (WIP) |
+|                               | `Bus::dispatchAfterResponse($job)`                 | yes (WIP) |
+|                               | `Event::dispatch($event)`                          | yes (WIP) |
+| Method call with variable     | `$jobDispatcher->dispatch($job)`                   | yes (WIP) |
+|                               | `$jobDispatcher->dispatchNow($job)`                | yes (WIP) |
+|                               | `$jobDispatcher->dispatchSync($job)`               | yes (WIP) |
+|                               | `$jobDispatcher->dispatchToQueue($job)`            | yes (WIP) |
+|                               | `$jobDispatcher->dispatchAfterResponse($job)`      | yes (WIP) |
+|                               | `$eventDispatcher->dispatch($event)`               | yes (WIP) |
 
 ### Manual discovery
 
