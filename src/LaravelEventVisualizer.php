@@ -1,9 +1,8 @@
-<?php
+<?php declare(strict_types=1);
 
 namespace JonasPardon\LaravelEventVisualizer;
 
 use Closure;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Str;
 
 class LaravelEventVisualizer
@@ -14,9 +13,10 @@ class LaravelEventVisualizer
     private string $eventColor;
     private string $listenerColor;
     private string $jobColor;
+    private bool $autoDiscoverJobsAndEvents;
     private string $mermaidString = '';
 
-    public function __construct()
+    public function __construct(private CodeParser $parser)
     {
         $this->showLaravelEvents = config('event-visualizer.show_laravel_events', false);
         $this->showSubscriberInternalHandlerMethods = config('event-visualizer.show_subscriber_internal_handler_methods', false);
@@ -24,6 +24,7 @@ class LaravelEventVisualizer
         $this->eventColor = config('event-visualizer.theme.colors.event', '#55efc4');
         $this->listenerColor = config('event-visualizer.theme.colors.listener', '#74b9ff');
         $this->jobColor = config('event-visualizer.theme.colors.job', '#a29bfe');
+        $this->autoDiscoverJobsAndEvents = config('event-visualizer.auto_discover_jobs_and_events', false);
     }
 
     public function getMermaidStringForEvents(): string
@@ -176,15 +177,32 @@ class LaravelEventVisualizer
 
     private function handleChildren(string $className, string $classType): void
     {
-        if (method_exists($className, 'dispatchesJobs')) {
-            foreach ($className::dispatchesJobs() as $job) {
+        if (Str::contains($className, '@')) {
+            $className = Str::before($className, '@');
+        }
+
+        if ($this->autoDiscoverJobsAndEvents) {
+            $autoDiscoveredJobs = $this->parser->getDispatchedJobsFromClass($className);
+
+            $autoDiscoveredJobs->each(function (string $job) use ($className, $classType) {
                 if ($classType === 'job') {
                     $this->fromJobToJob($className, $job);
                 } elseif ($classType === 'listener') {
                     $this->fromListenerToJob($className, $job);
                 }
+            });
+        } else {
+            if (method_exists($className, 'dispatchesJobs')) {
+                foreach ($className::dispatchesJobs() as $job) {
+                    if ($classType === 'job') {
+                        $this->fromJobToJob($className, $job);
+                    } elseif ($classType === 'listener') {
+                        $this->fromListenerToJob($className, $job);
+                    }
+                }
             }
         }
+
 
         if (method_exists($className, 'dispatchesEvents')) {
             foreach ($className::dispatchesEvents() as $event) {

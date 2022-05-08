@@ -21,6 +21,11 @@ return [
         // Illuminate\Auth\Events\Login::class,
     ],
 
+    /**
+     * WIP! Will not work as expected.
+     */
+    'auto_discover_jobs_and_events' => false,
+
     'theme' => [
         /**
          * The type of diagram that Mermaid should use to render the events.
