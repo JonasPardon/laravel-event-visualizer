@@ -36,7 +36,7 @@ Visit `your-app.test/event-visualizer` on a non-production environment.
 
 ### Auto discovery
 
-Auto discovery of events and jobs is still very much a work in progress.
+Auto discovery of events and jobs might still fail. If you're using this and encounter errors, please open an issue.
 
 If you want to enable auto discovery, enable `auto_discover_jobs_and_events` in your config. This will currently disable manual discovery.
 If this gives you any problems, you should opt for manual discovery.
