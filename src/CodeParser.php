@@ -32,20 +32,10 @@ class CodeParser
         }
         $syntaxTree = $this->parser->parse($code);
 
-//        $dumper = new NodeDumper();
-//        dd($dumper->dump($syntaxTree));
         $traverser = new NodeTraverser();
         $nodes = $traverser->traverse($syntaxTree);
 
         $imports = $this->getImports($nodes);
-//        $properties = $this->getClassProperties($nodes);
-//        dd();
-
-//        $nodeFinder = new NodeFinder();
-//        $methodCalls = $nodeFinder->find($nodes, function (Node $node) {
-//            return $node instanceof MethodCall
-//                && collect(['dispatch', 'dispatchNow'])->contains($node->name->toString());
-//        });
         $methodCalls = $this->getMethodCalls(
             $nodes,
             ['jobDispatcher'],
@@ -62,6 +52,8 @@ class CodeParser
                 'dispatch',
                 'dispatchNow',
                 'dispatchSync',
+                'dispatchAfterResponse',
+                'dispatchToQueue',
             ],
         );
 
@@ -95,20 +87,12 @@ class CodeParser
         $methodCalls = $this->getMethodCalls(
             $nodes,
             ['eventDispatcher'],
-            [
-                'dispatch',
-                'dispatchNow',
-                'dispatchSync',
-            ],
+            ['dispatch'],
         );
         $staticCalls = $this->getStaticCalls(
             $nodes,
             ['Event'],
-            [
-                'dispatch',
-                'dispatchNow',
-                'dispatchSync',
-            ],
+            ['dispatch'],
         );
 
         $methodCalls = $methodCalls->map(function (MethodCall $call) use ($imports) {
@@ -140,24 +124,6 @@ class CodeParser
         });
 
         return $imports->flatten();
-    }
-
-    private function getClassProperties(array $nodes): Collection
-    {
-        $nodeFinder = new NodeFinder();
-
-        $uses = $nodeFinder->find($nodes, function (Node $node) {
-            dump($node);
-            return $node instanceof Node\Stmt\Property;
-        });
-
-        $properties = collect($uses)->map(function (Node\Stmt\Use_ $use) {
-            return collect($use->uses)->map(function (Node\Stmt\UseUse $useUse) {
-                return $useUse->name->toString();
-            })->flatten();
-        });
-
-        return $properties->flatten();
     }
 
     private function getMethodCalls(
