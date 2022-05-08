@@ -6,13 +6,27 @@ use Illuminate\Support\Facades\Config;
 use JonasPardon\LaravelEventVisualizer\CodeParser;
 use JonasPardon\LaravelEventVisualizer\LaravelEventVisualizer;
 use JonasPardon\LaravelEventVisualizer\Tests\TestCase;
+use PhpParser\NodeFinder;
+use PhpParser\NodeTraverser;
 
 final class LaravelEventVisualizerTest extends TestCase
 {
+    private CodeParser $codeParser;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        $this->codeParser = new CodeParser(
+            new NodeTraverser(),
+            new NodeFinder(),
+        );
+    }
+
     /** @test */
     public function it_parses_basic_events(): void
     {
-        $visualizer = new LaravelEventVisualizer(new CodeParser());
+        $visualizer = new LaravelEventVisualizer($this->codeParser);
 
         $output = $visualizer->buildMermaidString([
             'App\\Events\\Event1' => [
@@ -34,7 +48,7 @@ final class LaravelEventVisualizerTest extends TestCase
     /** @test */
     public function it_defines_theme_colors(): void
     {
-        $visualizer = new LaravelEventVisualizer(new CodeParser());
+        $visualizer = new LaravelEventVisualizer($this->codeParser);
         $output = $visualizer->buildMermaidString([]);
 
         $eventColor = config('event-visualizer.theme.colors.event');
@@ -60,7 +74,7 @@ final class LaravelEventVisualizerTest extends TestCase
     {
         Config::set('event-visualizer.show_laravel_events', true);
 
-        $visualizer = new LaravelEventVisualizer(new CodeParser());
+        $visualizer = new LaravelEventVisualizer($this->codeParser);
 
         $output = $visualizer->buildMermaidString([
             'App\\Events\\Event' => [
@@ -86,7 +100,7 @@ final class LaravelEventVisualizerTest extends TestCase
     {
         Config::set('event-visualizer.show_laravel_events', false);
 
-        $visualizer = new LaravelEventVisualizer(new CodeParser());
+        $visualizer = new LaravelEventVisualizer($this->codeParser);
 
         $output = $visualizer->buildMermaidString([
             'App\\Events\\Event' => [
@@ -112,7 +126,7 @@ final class LaravelEventVisualizerTest extends TestCase
     {
         Config::set('event-visualizer.show_subscriber_internal_handler_methods', true);
 
-        $visualizer = new LaravelEventVisualizer(new CodeParser());
+        $visualizer = new LaravelEventVisualizer($this->codeParser);
 
         $output = $visualizer->buildMermaidString([
             'App\\Events\\Event' => [
@@ -131,7 +145,7 @@ final class LaravelEventVisualizerTest extends TestCase
     {
         Config::set('event-visualizer.show_subscriber_internal_handler_methods', false);
 
-        $visualizer = new LaravelEventVisualizer(new CodeParser());
+        $visualizer = new LaravelEventVisualizer($this->codeParser);
 
         $output = $visualizer->buildMermaidString([
             'App\\Events\\Event' => [
@@ -156,7 +170,7 @@ final class LaravelEventVisualizerTest extends TestCase
             'ListenerToIgnore',
         ]);
 
-        $visualizer = new LaravelEventVisualizer(new CodeParser());
+        $visualizer = new LaravelEventVisualizer($this->codeParser);
 
         $output = $visualizer->buildMermaidString([
             'App\\Events\\Event' => [
@@ -184,7 +198,7 @@ final class LaravelEventVisualizerTest extends TestCase
             'EventToIgnore',
         ]);
 
-        $visualizer = new LaravelEventVisualizer(new CodeParser());
+        $visualizer = new LaravelEventVisualizer($this->codeParser);
 
         $output = $visualizer->buildMermaidString([
             'App\\Events\\Event' => [
