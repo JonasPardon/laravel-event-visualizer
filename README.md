@@ -34,7 +34,43 @@ php artisan vendor:publish --tag="event-visualizer-views"
 
 Visit `your-app.test/event-visualizer` on a non-production environment.
 
-Initially, this might not show a lot of information as this package will currently not auto-discover listeners and jobs.
+### Auto discovery
+
+Auto discovery of events and jobs is still very much a work in progress.
+
+If you want to enable auto discovery, enable `auto_discover_jobs_and_events` in your config. This will currently disable manual discovery.
+If this gives you any problems, you should opt for manual discovery.
+
+Refer to the table below for support.
+
+| Syntax                        | Examples                                           | Supported |
+|-------------------------------|----------------------------------------------------|-----------|
+| Static call with inline class | `Bus::dispatch(new Job())`                         | yes       |
+|                               | `Bus::dispatchNow(new Job())`                      | yes       |
+|                               | `Bus::dispatchSync(new Job())`                     | yes       |
+|                               | `Bus::dispatchToQueue(new Job())`                  | yes       |
+|                               | `Bus::dispatchAfterResponse(new Job())`            | yes       |
+|                               | `Event::dispatch(new Event())`                     | yes       |
+| Method call with inline class | `$jobDispatcher->dispatch(new Job())`              | yes       |
+|                               | `$jobDispatcher->dispatchNow(new Job())`           | yes       |
+|                               | `$jobDispatcher->dispatchSync(new Job())`          | yes       |
+|                               | `$jobDispatcher->dispatchToQueue(new Job())`       | yes       |
+|                               | `$jobDispatcher->dispatchAfterResponse(new Job())` | yes       |
+|                               | `$eventDispatcher->dispatch(new Event())`          | yes       |
+| Static call with variable     | `Bus::dispatch($job)`                              | no        |
+|                               | `Bus::dispatchNow($job)`                           | no        |
+|                               | `Bus::dispatchSync($job)`                          | no        |
+|                               | `Bus::dispatchToQueue($job)`                       | no        |
+|                               | `Bus::dispatchAfterResponse($job)`                 | no        |
+|                               | `Event::dispatch($event)`                          | no        |
+| Method call with variable     | `$jobDispatcher->dispatch($job)`                   | no        |
+|                               | `$jobDispatcher->dispatchNow($job)`                | no        |
+|                               | `$jobDispatcher->dispatchSync($job)`               | no        |
+|                               | `$jobDispatcher->dispatchToQueue($job)`            | no        |
+|                               | `$jobDispatcher->dispatchAfterResponse($job)`      | no        |
+|                               | `$eventDispatcher->dispatch($event)`               | no        |
+
+### Manual discovery
 
 To make sure your listeners and jobs are linked together, add the following snippets wherever applicable:
 
