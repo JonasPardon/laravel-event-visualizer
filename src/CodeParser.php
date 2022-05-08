@@ -3,11 +3,11 @@
 namespace JonasPardon\LaravelEventVisualizer;
 
 use Exception;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
 use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
-use PhpParser\NodeDumper;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\Parser;
@@ -18,7 +18,10 @@ class CodeParser
 {
     private Parser $parser;
 
-    public function __construct()
+    public function __construct(
+        private NodeTraverser $traverser,
+        private NodeFinder $nodeFinder,
+    )
     {
         $this->parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
     }
@@ -31,9 +34,7 @@ class CodeParser
             return collect([]);
         }
         $syntaxTree = $this->parser->parse($code);
-
-        $traverser = new NodeTraverser();
-        $nodes = $traverser->traverse($syntaxTree);
+        $nodes = $this->traverser->traverse($syntaxTree);
 
         $imports = $this->getImports($nodes);
         $methodCalls = $this->getMethodCalls(
@@ -57,13 +58,21 @@ class CodeParser
             ],
         );
 
-        $methodCalls = $methodCalls->map(function (MethodCall $call) use ($imports) {
-            $className = $call->args[0]->value->class?->parts[0];
+        $methodCalls = $methodCalls->map(function (MethodCall $call) use ($imports, $nodes) {
+            if ($call->args[0]->value instanceof Node\Expr\Variable) {
+                $className = $this->getVariableAssignment($nodes, $call->args[0]->value);
+            } else {
+                $className = $call->args[0]->value->class?->parts[0];
+            }
 
             return $this->buildFullClassName($className, $imports);
         });
-        $staticCalls = $staticCalls->map(function (StaticCall $call) use ($imports) {
-            $className = $call->args[0]->value->class?->parts[0];
+        $staticCalls = $staticCalls->map(function (StaticCall $call) use ($imports, $nodes) {
+            if ($call->args[0]->value instanceof Node\Expr\Variable) {
+                $className = $this->getVariableAssignment($nodes, $call->args[0]->value);
+            } else {
+                $className = $call->args[0]->value->class?->parts[0];
+            }
 
             return $this->buildFullClassName($className, $imports);
         });
@@ -79,9 +88,7 @@ class CodeParser
             return collect([]);
         }
         $syntaxTree = $this->parser->parse($code);
-
-        $traverser = new NodeTraverser();
-        $nodes = $traverser->traverse($syntaxTree);
+        $nodes = $this->traverser->traverse($syntaxTree);
 
         $imports = $this->getImports($nodes);
         $methodCalls = $this->getMethodCalls(
@@ -95,13 +102,21 @@ class CodeParser
             ['dispatch'],
         );
 
-        $methodCalls = $methodCalls->map(function (MethodCall $call) use ($imports) {
-            $className = $call->args[0]->value->class?->parts[0];
+        $methodCalls = $methodCalls->map(function (MethodCall $call) use ($nodes, $imports) {
+            if ($call->args[0]->value instanceof Node\Expr\Variable) {
+                $className = $this->getVariableAssignment($nodes, $call->args[0]->value);
+            } else {
+                $className = $call->args[0]->value->class?->parts[0];
+            }
 
             return $this->buildFullClassName($className, $imports);
         });
-        $staticCalls = $staticCalls->map(function (StaticCall $call) use ($imports) {
-            $className = $call->args[0]->value->class?->parts[0];
+        $staticCalls = $staticCalls->map(function (StaticCall $call) use ($nodes, $imports) {
+            if ($call->args[0]->value instanceof Node\Expr\Variable) {
+                $className = $this->getVariableAssignment($nodes, $call->args[0]->value);
+            } else {
+                $className = $call->args[0]->value->class?->parts[0];
+            }
 
             return $this->buildFullClassName($className, $imports);
         });
@@ -111,9 +126,7 @@ class CodeParser
 
     private function getImports(array $nodes): Collection
     {
-        $nodeFinder = new NodeFinder();
-
-        $uses = $nodeFinder->find($nodes, function (Node $node) {
+        $uses = $this->nodeFinder->find($nodes, function (Node $node) {
             return $node instanceof Node\Stmt\Use_;
         });
 
@@ -131,13 +144,25 @@ class CodeParser
         array $varNames,
         array $callNames,
     ): Collection {
-        $nodeFinder = new NodeFinder();
+        $methodCalls = $this->nodeFinder->find($nodes, function (Node $node) use ($nodes, $varNames, $callNames) {
+            if (
+                !$node instanceof MethodCall
+                || collect($varNames)->doesntContain(($node->var->name))
+                || collect($callNames)->doesntContain($node->name->toString())
+            ) {
+                return false;
+            }
 
-        $methodCalls = $nodeFinder->find($nodes, function (Node $node) use ($varNames, $callNames) {
-            return $node instanceof MethodCall
-                && collect($varNames)->contains(($node->var->name))
-                && collect($callNames)->contains($node->name->toString())
-                && !$node->args[0]->value instanceof Node\Expr\Variable; // When calling jobDispatcher->dispatch($job)
+            // When using $jobDispatcher->dispatch($job) with a variable
+            if (
+                collect($node->getSubNodeNames())->contains('args')
+                && $node->args
+                && $node->args[0]->value instanceof Node\Expr\Variable
+            ) {
+                return $this->getVariableAssignment($nodes, $node->args[0]->value) !== null;
+            }
+
+            return true;
         });
 
         return collect($methodCalls);
@@ -148,16 +173,41 @@ class CodeParser
         array $classNames,
         array $callNames,
     ): Collection {
-        $nodeFinder = new NodeFinder();
+        $methodCalls = $this->nodeFinder->find($nodes, function (Node $node) use ($nodes, $classNames, $callNames) {
+            if (
+                !$node instanceof StaticCall
+                || collect($classNames)->doesntContain(($node->class->toString()))
+                || collect($callNames)->doesntContain($node->name->toString())
+            ) {
+                return false;
+            }
 
-        $methodCalls = $nodeFinder->find($nodes, function (Node $node) use ($classNames, $callNames) {
-            return $node instanceof StaticCall
-                && collect($classNames)->contains(($node->class->toString()))
-                && collect($callNames)->contains($node->name->toString())
-                && !$node->args[0]->value instanceof Node\Expr\Variable; // When calling Bus::dispatch($job)
+            // When using Bus::dispatch($job) with a variable
+            if (
+                collect($node->getSubNodeNames())->contains('args')
+                && $node->args
+                && $node->args[0]->value instanceof Node\Expr\Variable
+            ) {
+                return $this->getVariableAssignment($nodes, $node->args[0]->value) !== null;
+            }
+
+            return true;
         });
 
         return collect($methodCalls);
+    }
+
+    private function getVariableAssignment(array $nodes, Node\Expr\Variable $variable): ?string
+    {
+        $hits = $this->nodeFinder->find($nodes, function (Node $node) use ($variable) {
+            return $node instanceof Node\Expr\Assign && $node->var->name === $variable->name;
+        });
+
+        if (!$hits || count($hits) === 0) {
+            return null;
+        }
+
+        return $hits[0]->expr->class->parts[0];
     }
 
     private function buildFullClassName(string $className, ?Collection $imports = null): string
