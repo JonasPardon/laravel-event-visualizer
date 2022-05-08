@@ -72,6 +72,38 @@ class CodeParser
         return $jobDispatcherCalls;
     }
 
+    public function getDispatchedEventsFromClass(string $className): Collection
+    {
+        try {
+            $code = $this->getCodeFromClass($className);
+        } catch (Exception $e) {
+            return collect([]);
+        }
+        $syntaxTree = $this->parser->parse($code);
+
+        $traverser = new NodeTraverser();
+        $nodes = $traverser->traverse($syntaxTree);
+
+        $imports = $this->getImports($nodes);
+        $methodCalls = $this->getMethodCalls(
+            $nodes,
+            ['eventDispatcher'],
+            [
+                'dispatch',
+                'dispatchNow',
+                'dispatchSync',
+            ],
+        );
+
+        $eventDispatcherCalls = $methodCalls->map(function (MethodCall $call) use ($imports) {
+            $className = $call->args[0]->value->class?->parts[0];
+
+            return $this->buildFullClassName($className, $imports);
+        });
+
+        return $eventDispatcherCalls;
+    }
+
     private function getImports(array $nodes): Collection
     {
         $nodeFinder = new NodeFinder();

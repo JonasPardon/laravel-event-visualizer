@@ -25,6 +25,7 @@ class LaravelEventVisualizer
         $this->listenerColor = config('event-visualizer.theme.colors.listener', '#74b9ff');
         $this->jobColor = config('event-visualizer.theme.colors.job', '#a29bfe');
         $this->autoDiscoverJobsAndEvents = config('event-visualizer.auto_discover_jobs_and_events', false);
+        $this->autoDiscoverJobsAndEvents = true;
     }
 
     public function getMermaidStringForEvents(): string
@@ -191,6 +192,16 @@ class LaravelEventVisualizer
                     $this->fromListenerToJob($className, $job);
                 }
             });
+
+            $autoDiscoveredEvents = $this->parser->getDispatchedEventsFromClass($className);
+
+            $autoDiscoveredEvents->each(function (string $event) use ($className, $classType) {
+                if ($classType === 'job') {
+                    $this->fromJobToEvent($className, $event);
+                } elseif ($classType === 'listener') {
+                    $this->fromListenerToEvent($className, $event);
+                }
+            });
         } else {
             if (method_exists($className, 'dispatchesJobs')) {
                 foreach ($className::dispatchesJobs() as $job) {
@@ -201,15 +212,14 @@ class LaravelEventVisualizer
                     }
                 }
             }
-        }
 
-
-        if (method_exists($className, 'dispatchesEvents')) {
-            foreach ($className::dispatchesEvents() as $event) {
-                if ($classType === 'job') {
-                    $this->fromJobToEvent($className, $event);
-                } elseif ($classType === 'listener') {
-                    $this->fromListenerToEvent($className, $event);
+            if (method_exists($className, 'dispatchesEvents')) {
+                foreach ($className::dispatchesEvents() as $event) {
+                    if ($classType === 'job') {
+                        $this->fromJobToEvent($className, $event);
+                    } elseif ($classType === 'listener') {
+                        $this->fromListenerToEvent($className, $event);
+                    }
                 }
             }
         }
