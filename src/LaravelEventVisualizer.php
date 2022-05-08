@@ -25,7 +25,6 @@ class LaravelEventVisualizer
         $this->listenerColor = config('event-visualizer.theme.colors.listener', '#74b9ff');
         $this->jobColor = config('event-visualizer.theme.colors.job', '#a29bfe');
         $this->autoDiscoverJobsAndEvents = config('event-visualizer.auto_discover_jobs_and_events', false);
-        $this->autoDiscoverJobsAndEvents = true;
     }
 
     public function getMermaidStringForEvents(): string
