@@ -50,6 +50,6 @@ return (new PhpCsFixer\Config())
         'array_indentation' => true,
         'compact_nullable_typehint' => true,
         'no_spaces_around_offset' => true,
-        'blankline_after_open_tag' => false,
+        'blank_line_after_opening_tag' => false,
     ])
     ->setFinder($finder);
