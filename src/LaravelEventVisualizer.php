@@ -113,10 +113,6 @@ class LaravelEventVisualizer
     {
         $className = $node->getClassName();
 
-        if (Str::contains($className, '@')) {
-            $className = Str::before($className, '@');
-        }
-
         if ($this->autoDiscoverJobsAndEvents) {
             $autoDiscoveredJobs = $this->parser->getDispatchedJobsFromClass($className);
 

@@ -41,6 +41,10 @@ abstract class VisualizerNode implements VisualizerNodeInterface
 
     public function getClassName(): string
     {
+        if (Str::contains($this->class, '@')) {
+            return Str::before($this->class, '@');
+        }
+
         return $this->class;
     }
 }
