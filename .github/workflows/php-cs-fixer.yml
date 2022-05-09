@@ -2,6 +2,9 @@ name: Check & fix styling
 
 on: [push]
 
+permissions:
+  actions: write
+
 jobs:
   php-cs-fixer:
     runs-on: ubuntu-latest
@@ -16,3 +19,8 @@ jobs:
         uses: docker://oskarstark/php-cs-fixer-ga
         with:
           args: --config=.php_cs.dist.php --allow-risky=yes --dry-run
+
+      - name: Commit changes
+        uses: stefanzweifel/git-auto-commit-action@v4
+        with:
+          commit_message: Fix styling
