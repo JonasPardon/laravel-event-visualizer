@@ -15,7 +15,7 @@ Laravel package to visualize events with their handlers, including jobs to chain
 You can install the package via composer:
 
 ```bash
-composer require jonaspardon/laravel-event-visualizer
+composer require jonaspardon/laravel-event-visualizer --dev
 ```
 
 You can publish the config file with:
