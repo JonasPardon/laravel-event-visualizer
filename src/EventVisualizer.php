@@ -8,8 +8,9 @@ use JonasPardon\LaravelEventVisualizer\Models\Event;
 use JonasPardon\LaravelEventVisualizer\Models\Job;
 use JonasPardon\LaravelEventVisualizer\Models\Listener;
 use JonasPardon\LaravelEventVisualizer\Models\VisualizerNode;
+use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
 
-class LaravelEventVisualizer
+class EventVisualizer
 {
     private bool $showLaravelEvents;
     private array $classesToIgnore;

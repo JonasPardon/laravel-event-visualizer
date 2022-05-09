@@ -4,12 +4,12 @@ namespace JonasPardon\LaravelEventVisualizer\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
-use JonasPardon\LaravelEventVisualizer\LaravelEventVisualizer;
+use JonasPardon\LaravelEventVisualizer\EventVisualizer;
 
 final class LaravelEventVisualizerController extends Controller
 {
     public function __construct(
-        private LaravelEventVisualizer $visualizer,
+        private EventVisualizer $visualizer,
     ) {
     }
 
