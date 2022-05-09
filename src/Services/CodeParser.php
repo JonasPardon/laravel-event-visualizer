@@ -39,7 +39,6 @@ class CodeParser
         $syntaxTree = $this->parser->parse($code);
         $nodes = $this->traverser->traverse($syntaxTree);
 
-        $imports = $this->getImports($nodes);
         $methodCalls = $this->getMethodCalls(
             $nodes,
             ['jobDispatcher'],
@@ -61,34 +60,12 @@ class CodeParser
             ],
         );
 
-        $methodCalls = $methodCalls->map(function (MethodCall $call) use ($imports, $nodes) {
-            if ($call->args[0]->value instanceof Node\Expr\Variable) {
-                $className = $this->getVariableAssignment($nodes, $call->args[0]->value);
-            } else {
-                $className = $call->args[0]->value->class?->parts[0];
-            }
-
-            return $this->getVisualizerNodeFromClassNameAndImports(
-                className: $className,
-                imports: $imports,
-                nodeType: VisualizerNode::JOB,
-            );
-        });
-        $staticCalls = $staticCalls->map(function (StaticCall $call) use ($imports, $nodes) {
-            if ($call->args[0]->value instanceof Node\Expr\Variable) {
-                $className = $this->getVariableAssignment($nodes, $call->args[0]->value);
-            } else {
-                $className = $call->args[0]->value->class?->parts[0];
-            }
-
-            return $this->getVisualizerNodeFromClassNameAndImports(
-                className: $className,
-                imports: $imports,
-                nodeType: VisualizerNode::JOB,
-            );
-        });
-
-        return $methodCalls->merge($staticCalls);
+        return $this->getVisualizerNodesOfTypeFromCalls(
+            visualizerNodeType: VisualizerNode::JOB,
+            traverserNodes: $nodes,
+            methodCalls: $methodCalls,
+            staticCalls: $staticCalls,
+        );
     }
 
     public function getDispatchedEventsFromVisualizerNode(VisualizerNode $visualizerNode): Collection
@@ -101,7 +78,6 @@ class CodeParser
         $syntaxTree = $this->parser->parse($code);
         $nodes = $this->traverser->traverse($syntaxTree);
 
-        $imports = $this->getImports($nodes);
         $methodCalls = $this->getMethodCalls(
             $nodes,
             ['eventDispatcher'],
@@ -113,9 +89,25 @@ class CodeParser
             ['dispatch'],
         );
 
-        $methodCalls = $methodCalls->map(function (MethodCall $call) use ($nodes, $imports) {
+        return $this->getVisualizerNodesOfTypeFromCalls(
+            visualizerNodeType: VisualizerNode::EVENT,
+            traverserNodes: $nodes,
+            methodCalls: $methodCalls,
+            staticCalls: $staticCalls,
+        );
+    }
+
+    private function getVisualizerNodesOfTypeFromCalls(
+        string $visualizerNodeType,
+        array $traverserNodes,
+        Collection $methodCalls,
+        Collection $staticCalls,
+    ): Collection {
+        $imports = $this->getImports($traverserNodes);
+
+        $methodCalls = $methodCalls->map(function (MethodCall $call) use ($traverserNodes, $imports, $visualizerNodeType) {
             if ($call->args[0]->value instanceof Node\Expr\Variable) {
-                $className = $this->getVariableAssignment($nodes, $call->args[0]->value);
+                $className = $this->getVariableAssignment($traverserNodes, $call->args[0]->value);
             } else {
                 $className = $call->args[0]->value->class?->parts[0];
             }
@@ -123,12 +115,13 @@ class CodeParser
             return $this->getVisualizerNodeFromClassNameAndImports(
                 className: $className,
                 imports: $imports,
-                nodeType: VisualizerNode::EVENT,
+                nodeType: $visualizerNodeType,
             );
         });
-        $staticCalls = $staticCalls->map(function (StaticCall $call) use ($nodes, $imports) {
+
+        $staticCalls = $staticCalls->map(function (StaticCall $call) use ($traverserNodes, $imports, $visualizerNodeType) {
             if ($call->args[0]->value instanceof Node\Expr\Variable) {
-                $className = $this->getVariableAssignment($nodes, $call->args[0]->value);
+                $className = $this->getVariableAssignment($traverserNodes, $call->args[0]->value);
             } else {
                 $className = $call->args[0]->value->class?->parts[0];
             }
@@ -136,7 +129,7 @@ class CodeParser
             return $this->getVisualizerNodeFromClassNameAndImports(
                 className: $className,
                 imports: $imports,
-                nodeType: VisualizerNode::EVENT,
+                nodeType: $visualizerNodeType,
             );
         });
 
