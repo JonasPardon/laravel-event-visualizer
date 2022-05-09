@@ -76,20 +76,38 @@ final class VisualizerNodeTest extends TestCase
     }
 
     /**
+     * @dataProvider providesClasses
+     * @test
+     */
+    public function it_gets_the_correct_mermaid_string(
+        string $FQN,
+        string $type,
+        string $expectedName,
+        string $expectedMermaidString,
+    ): void
+    {
+        /** @var VisualizerNode $node */
+        $node = new $type($FQN);
+
+        $this->assertEquals($expectedMermaidString, $node->toString());
+    }
+
+    /**
      * Params:
      * - FQN
      * - Node type
      * - Expected node name
+     * - Expected mermaid string
      */
     public function providesClasses(): array
     {
         return [
-            ['App\\Events\\Event', Event::class, 'Event'],
-            ['App\\Jobs\\Job', Job::class, 'Job'],
-            ['App\\Listeners\\Listener', Listener::class, 'Listener'],
-            ['Event', Event::class, 'Event'],
-            ['Job', Job::class, 'Job'],
-            ['Listener', Listener::class, 'Listener'],
+            ['App\\Events\\Event', Event::class, 'Event', 'Event(Event):::event'],
+            ['App\\Jobs\\Job', Job::class, 'Job', 'Job(Job):::job'],
+            ['App\\Listeners\\Listener', Listener::class, 'Listener', 'Listener(Listener):::listener'],
+            ['Event', Event::class, 'Event', 'Event(Event):::event'],
+            ['Job', Job::class, 'Job', 'Job(Job):::job'],
+            ['Listener', Listener::class, 'Listener', 'Listener(Listener):::listener'],
         ];
     }
 }

@@ -47,4 +47,9 @@ abstract class VisualizerNode implements VisualizerNodeInterface
 
         return $this->class;
     }
+
+    public function toString(): string
+    {
+        return "{$this->getIdentifier()}({$this->getName()}):::{$this->getType()}";
+    }
 }

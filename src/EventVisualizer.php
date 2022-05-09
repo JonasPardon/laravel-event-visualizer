@@ -93,7 +93,7 @@ class EventVisualizer
 
     private function connectNodes(VisualizerNode $from, VisualizerNode $to): void
     {
-        $entry = $this->getNodeString($from) . ' --> ' . $this->getNodeString($to) . PHP_EOL;
+        $entry = $from->toString() . ' --> ' . $to->toString() . PHP_EOL;
 
         if ($this->entryExists($entry)) {
             return;
@@ -101,11 +101,6 @@ class EventVisualizer
 
         $this->mermaidString .= $entry;
         $this->handleChildren($to);
-    }
-
-    private function getNodeString(VisualizerNode $node): string
-    {
-        return "{$node->getIdentifier()}({$node->getName()}):::{$node->getType()}";
     }
 
     private function handleChildren(VisualizerNode $node): void
