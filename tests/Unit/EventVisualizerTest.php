@@ -4,20 +4,20 @@ namespace JonasPardon\LaravelEventVisualizer\Tests\Unit;
 
 use Illuminate\Support\Facades\Config;
 use JonasPardon\LaravelEventVisualizer\EventVisualizer;
+use JonasPardon\LaravelEventVisualizer\Models\Event;
+use JonasPardon\LaravelEventVisualizer\Models\Listener;
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
 use JonasPardon\LaravelEventVisualizer\Tests\TestCase;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 
-final class LaravelEventVisualizerTest extends TestCase
+final class EventVisualizerTest extends TestCase
 {
     private CodeParser $codeParser;
 
     protected function setUp(): void
     {
         parent::setUp();
-
-        $this->markTestIncomplete('Awaiting refactor');
 
         $this->codeParser = new CodeParser(
             new NodeTraverser(),
@@ -30,19 +30,23 @@ final class LaravelEventVisualizerTest extends TestCase
     {
         $visualizer = new EventVisualizer($this->codeParser);
 
+        $event = new Event('App\\Events\\Event1');
+        $listener1 = new Listener('App\\Listeners\\Listener1');
+        $listener2 = new Listener('App\\Listeners\\Listener2');
+
         $output = $visualizer->buildMermaidString([
-            'App\\Events\\Event1' => [
-                'App\\Listeners\\Listener1',
-                'App\\Listeners\\Listener2',
+            $event->getClassName() => [
+                $listener1->getClassName(),
+                $listener2->getClassName(),
             ],
         ]);
 
         $this->assertStringContainsString(
-            'Event1[Event1]:::event --> Listener1[Listener1]:::listener',
+            "{$event->toString()} --> {$listener1->toString()}",
             $output,
         );
         $this->assertStringContainsString(
-            'Event1[Event1]:::event --> Listener2[Listener2]:::listener',
+            "{$event->toString()} --> {$listener2->toString()}",
             $output,
         );
     }
@@ -78,21 +82,25 @@ final class LaravelEventVisualizerTest extends TestCase
 
         $visualizer = new EventVisualizer($this->codeParser);
 
+        $appEvent = new Event('App\\Events\\Event');
+        $laravelEvent = new Event('Illuminate\\Auth\\Events\\Login');
+        $listener = new Listener('App\\Listeners\\Listener');
+
         $output = $visualizer->buildMermaidString([
-            'App\\Events\\Event' => [
-                'App\\Listeners\\Listener',
+            $appEvent->getClassName() => [
+                $listener->getClassName(),
             ],
-            'Illuminate\\Auth\\Events\\Login' => [
-                'App\\Listeners\\Listener',
+            $laravelEvent->getClassName() => [
+                $listener->getClassName(),
             ],
         ]);
 
         $this->assertStringContainsString(
-            'Event[Event]:::event --> Listener[Listener]:::listener',
+            "{$appEvent->toString()} --> {$listener->toString()}",
             $output,
         );
         $this->assertStringContainsString(
-            'Login[Login]:::event --> Listener[Listener]:::listener',
+            "{$laravelEvent->toString()} --> {$listener->toString()}",
             $output,
         );
     }
@@ -104,63 +112,25 @@ final class LaravelEventVisualizerTest extends TestCase
 
         $visualizer = new EventVisualizer($this->codeParser);
 
+        $appEvent = new Event('App\\Events\\Event');
+        $laravelEvent = new Event('Illuminate\\Auth\\Events\\Login');
+        $listener = new Listener('App\\Listeners\\Listener');
+
         $output = $visualizer->buildMermaidString([
-            'App\\Events\\Event' => [
-                'App\\Listeners\\Listener',
+            $appEvent->getClassName() => [
+                $listener->getClassName(),
             ],
-            'Illuminate\\Auth\\Events\\Login' => [
-                'App\\Listeners\\Listener',
+            $laravelEvent->getClassName() => [
+                $listener->getClassName(),
             ],
         ]);
 
         $this->assertStringContainsString(
-            'Event[Event]:::event --> Listener[Listener]:::listener',
+            "{$appEvent->toString()} --> {$listener->toString()}",
             $output,
         );
         $this->assertStringNotContainsString(
-            'Login[Login]:::event --> Listener[Listener]:::listener',
-            $output,
-        );
-    }
-
-    /** @test */
-    public function it_includes_subscriber_handler_methods_if_so_configured(): void
-    {
-        Config::set('event-visualizer.show_subscriber_internal_handler_methods', true);
-
-        $visualizer = new EventVisualizer($this->codeParser);
-
-        $output = $visualizer->buildMermaidString([
-            'App\\Events\\Event' => [
-                'App\\Listeners\\Listener@handlerMethod',
-            ],
-        ]);
-
-        $this->assertStringContainsString(
-            'Event[Event]:::event --> Listener-handlerMethod[Listener-handlerMethod]:::listener',
-            $output,
-        );
-    }
-
-    /** @test */
-    public function it_excludes_subscriber_handler_methods_if_so_configured(): void
-    {
-        Config::set('event-visualizer.show_subscriber_internal_handler_methods', false);
-
-        $visualizer = new EventVisualizer($this->codeParser);
-
-        $output = $visualizer->buildMermaidString([
-            'App\\Events\\Event' => [
-                'App\\Listeners\\Listener@handlerMethod',
-            ],
-        ]);
-
-        $this->assertStringContainsString(
-            'Event[Event]:::event --> Listener[Listener]:::listener',
-            $output,
-        );
-        $this->assertStringNotContainsString(
-            'handlerMethod',
+            "{$laravelEvent->toString()} --> {$listener->toString()}",
             $output,
         );
     }
@@ -174,19 +144,23 @@ final class LaravelEventVisualizerTest extends TestCase
 
         $visualizer = new EventVisualizer($this->codeParser);
 
+        $event = new Event('App\\Events\\Event');
+        $listenerToInclude = new Listener('App\\Listeners\\Listener');
+        $listenerToIgnore = new Listener('App\\Listeners\\ListenerToIgnore');
+
         $output = $visualizer->buildMermaidString([
-            'App\\Events\\Event' => [
-                'App\\Listeners\\Listener',
-                'App\\Listeners\\ListenerToIgnore',
+            $event->getClassName() => [
+                $listenerToInclude->getClassName(),
+                $listenerToIgnore->getClassName(),
             ],
         ]);
 
         $this->assertStringContainsString(
-            'Event[Event]:::event --> Listener[Listener]:::listener',
+            "{$event->toString()} --> {$listenerToInclude->toString()}",
             $output,
         );
         $this->assertStringNotContainsString(
-            'ListenerToIgnore',
+            "{$event->toString()} --> {$listenerToIgnore->toString()}",
             $output,
         );
     }
@@ -202,21 +176,25 @@ final class LaravelEventVisualizerTest extends TestCase
 
         $visualizer = new EventVisualizer($this->codeParser);
 
+        $eventToInclude = new Event('App\\Events\\Event');
+        $eventToIgnore = new Event('App\\Events\\EventToIgnore');
+        $listener = new Listener('App\\Listeners\\Listener');
+
         $output = $visualizer->buildMermaidString([
-            'App\\Events\\Event' => [
-                'App\\Listeners\\Listener',
+            $eventToInclude->getClassName() => [
+                $listener->getClassName(),
             ],
-            'App\\Events\\EventToIgnore' => [
-                'App\\Listeners\\Listener',
+            $eventToIgnore->getClassName() => [
+                $listener->getClassName(),
             ],
         ]);
 
         $this->assertStringContainsString(
-            'Event[Event]:::event --> Listener[Listener]:::listener',
+            "{$eventToInclude->toString()} --> {$listener->toString()}",
             $output,
         );
         $this->assertStringNotContainsString(
-            'EventToIgnore',
+            "{$eventToIgnore->toString()} --> {$listener->toString()}",
             $output,
         );
     }
