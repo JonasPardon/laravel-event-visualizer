@@ -4,6 +4,8 @@ on: [push]
 
 permissions:
   actions: write
+  pull-requests: write
+  contents: write
 
 jobs:
   php-cs-fixer:
