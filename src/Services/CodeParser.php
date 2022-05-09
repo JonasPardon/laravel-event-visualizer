@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace JonasPardon\LaravelEventVisualizer\Services;
 
@@ -24,8 +26,7 @@ class CodeParser
     public function __construct(
         private NodeTraverser $traverser,
         private NodeFinder $nodeFinder,
-    )
-    {
+    ) {
         $this->parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
     }
 
@@ -230,14 +231,14 @@ class CodeParser
         // todo: make sure we can also get the FQN if it's not in the imports
         // We initialize it to the classname as we might not get a hit on the imports
         $FQN = $imports->filter(function (string $import) use ($className) {
-                $parts = explode('\\', $import);
+            $parts = explode('\\', $import);
 
-                if (in_array($className, $parts)) {
-                    return true;
-                }
+            if (in_array($className, $parts)) {
+                return true;
+            }
 
-                return false;
-            })->first() ?? $className;
+            return false;
+        })->first() ?? $className;
 
         return match ($nodeType) {
             VisualizerNode::JOB => new Job($FQN),

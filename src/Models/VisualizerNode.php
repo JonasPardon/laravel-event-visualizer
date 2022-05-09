@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace JonasPardon\LaravelEventVisualizer\Models;
 
@@ -21,7 +23,7 @@ abstract class VisualizerNode implements VisualizerNodeInterface
 
     public function getName(): string
     {
-        $parts = explode( '\\', $this->class);
+        $parts = explode('\\', $this->class);
         $name = $parts[count($parts) - 1];
 
         if ($this->showSubscriberInternalHandlerMethods) {

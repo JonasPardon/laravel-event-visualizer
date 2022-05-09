@@ -1,4 +1,6 @@
-<?php declare(strict_types=1);
+<?php
+
+declare(strict_types=1);
 
 namespace JonasPardon\LaravelEventVisualizer\Tests\Unit;
 
@@ -19,8 +21,7 @@ final class VisualizerNodeTest extends TestCase
         string $FQN,
         string $type,
         string $expectedName,
-    ): void
-    {
+    ): void {
         /** @var VisualizerNode $node */
         $node = new $type($FQN);
 
@@ -35,8 +36,7 @@ final class VisualizerNodeTest extends TestCase
         string $FQN,
         string $type,
         string $expectedName,
-    ): void
-    {
+    ): void {
         Config::set('event-visualizer.show_subscriber_internal_handler_methods', true);
 
         /** @var VisualizerNode $node */
@@ -52,8 +52,7 @@ final class VisualizerNodeTest extends TestCase
     public function it_can_get_the_class_name_of_the_node(
         string $FQN,
         string $type,
-    ): void
-    {
+    ): void {
         /** @var VisualizerNode $node */
         $node = new $type($FQN);
 
@@ -67,8 +66,7 @@ final class VisualizerNodeTest extends TestCase
     public function it_can_get_the_class_name_of_the_node_without_the_handler_appended(
         string $FQN,
         string $type,
-    ): void
-    {
+    ): void {
         /** @var VisualizerNode $node */
         $node = new $type($FQN . '@handler');
 
@@ -84,8 +82,7 @@ final class VisualizerNodeTest extends TestCase
         string $type,
         string $expectedName,
         string $expectedMermaidString,
-    ): void
-    {
+    ): void {
         /** @var VisualizerNode $node */
         $node = new $type($FQN);
 

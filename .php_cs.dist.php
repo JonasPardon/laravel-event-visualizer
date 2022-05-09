@@ -12,29 +12,44 @@ $finder = Symfony\Component\Finder\Finder::create()
 
 return (new PhpCsFixer\Config())
     ->setRules([
-        '@PSR12' => true,
-        'array_syntax' => ['syntax' => 'short'],
-        'ordered_imports' => ['sort_algorithm' => 'alpha'],
+        '@PSR2' => true,
+        'no_whitespace_in_blank_line' => true,
+        'array_syntax' => [
+            'syntax' => 'short',
+        ],
         'no_unused_imports' => true,
-        'not_operator_with_successor_space' => true,
-        'trailing_comma_in_multiline' => true,
-        'phpdoc_scalar' => true,
-        'unary_operator_spaces' => true,
-        'binary_operator_spaces' => true,
-        'blank_line_before_statement' => [
-            'statements' => ['break', 'continue', 'declare', 'return', 'throw', 'try'],
+        'trailing_comma_in_multiline' => ['elements' => ['arrays']],
+        'global_namespace_import' => [
+            'import_classes' => true,
+            'import_constants' => true,
         ],
-        'phpdoc_single_line_var_spacing' => true,
-        'phpdoc_var_without_name' => true,
-        'class_attributes_separation' => [
-            'elements' => [
-                'method' => 'one',
-            ],
+        'no_empty_comment' => true,
+        'no_empty_phpdoc' => true,
+        'no_empty_statement' => true,
+        'single_quote' => true,
+        'constant_case' => true,
+        'lowercase_keywords' => true,
+        'lowercase_static_reference' => true,
+        'native_function_casing' => true,
+        'native_function_type_declaration_casing' => true,
+        'no_useless_else' => true,
+        'function_declaration' => true,
+        'function_typehint_space' => true,
+        'return_type_declaration' => [
+            'space_before' => 'none',
         ],
-        'method_argument_space' => [
-            'on_multiline' => 'ensure_fully_multiline',
-            'keep_multiple_spaces_after_comma' => true,
+        'single_import_per_statement' => true,
+        'list_syntax' => [
+            'syntax' => 'short',
         ],
-        'single_trait_insert_per_statement' => true,
+        'clean_namespace' => true,
+        'logical_operators' => true,
+        'new_with_braces' => true,
+        'ternary_to_null_coalescing' => true,
+        'no_closing_tag' => true,
+        'array_indentation' => true,
+        'compact_nullable_typehint' => true,
+        'no_spaces_around_offset' => true,
+        'blankline_after_open_tag' => false,
     ])
     ->setFinder($finder);
