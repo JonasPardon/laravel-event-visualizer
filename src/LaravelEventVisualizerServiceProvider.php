@@ -4,7 +4,6 @@ namespace JonasPardon\LaravelEventVisualizer;
 
 use Spatie\LaravelPackageTools\Package;
 use Spatie\LaravelPackageTools\PackageServiceProvider;
-use JonasPardon\LaravelEventVisualizer\Commands\LaravelEventVisualizerCommand;
 
 class LaravelEventVisualizerServiceProvider extends PackageServiceProvider
 {
