@@ -3,8 +3,8 @@
 namespace JonasPardon\LaravelEventVisualizer;
 
 use Exception;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Collection;
+use JonasPardon\LaravelEventVisualizer\Models\VisualizerNode;
 use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\StaticCall;
@@ -26,10 +26,10 @@ class CodeParser
         $this->parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
     }
 
-    public function getDispatchedJobsFromClass(string $className): Collection
+    public function getDispatchedJobsFromVisualizerNode(VisualizerNode $visualizerNode): Collection
     {
         try {
-            $code = $this->getCodeFromClass($className);
+            $code = $this->getCodeFromClass($visualizerNode->getClassName());
         } catch (Exception $e) {
             return collect([]);
         }
@@ -80,10 +80,10 @@ class CodeParser
         return $methodCalls->merge($staticCalls);
     }
 
-    public function getDispatchedEventsFromClass(string $className): Collection
+    public function getDispatchedEventsFromVisualizerNode(VisualizerNode $visualizerNode): Collection
     {
         try {
-            $code = $this->getCodeFromClass($className);
+            $code = $this->getCodeFromClass($visualizerNode->getClassName());
         } catch (Exception $e) {
             return collect([]);
         }

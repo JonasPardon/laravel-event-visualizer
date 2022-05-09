@@ -12,7 +12,6 @@ use JonasPardon\LaravelEventVisualizer\Models\VisualizerNode;
 class LaravelEventVisualizer
 {
     private bool $showLaravelEvents;
-    private bool $showSubscriberInternalHandlerMethods;
     private array $classesToIgnore;
     private string $eventColor;
     private string $listenerColor;
@@ -23,7 +22,6 @@ class LaravelEventVisualizer
     public function __construct(private CodeParser $parser)
     {
         $this->showLaravelEvents = config('event-visualizer.show_laravel_events', false);
-        $this->showSubscriberInternalHandlerMethods = config('event-visualizer.show_subscriber_internal_handler_methods', false);
         $this->classesToIgnore = config('event-visualizer.classes_to_ignore', []);
         $this->eventColor = config('event-visualizer.theme.colors.event', '#55efc4');
         $this->listenerColor = config('event-visualizer.theme.colors.listener', '#74b9ff');
@@ -114,13 +112,13 @@ class LaravelEventVisualizer
         $className = $node->getClassName();
 
         if ($this->autoDiscoverJobsAndEvents) {
-            $autoDiscoveredJobs = $this->parser->getDispatchedJobsFromClass($className);
+            $autoDiscoveredJobs = $this->parser->getDispatchedJobsFromVisualizerNode($node);
 
             $autoDiscoveredJobs->each(function (string $job) use ($node) {
                 $this->connectNodes($node, new Job($job));
             });
 
-            $autoDiscoveredEvents = $this->parser->getDispatchedEventsFromClass($className);
+            $autoDiscoveredEvents = $this->parser->getDispatchedEventsFromVisualizerNode($node);
 
             $autoDiscoveredEvents->each(function (string $event) use ($node) {
                 $this->connectNodes($node, new Event($event));
