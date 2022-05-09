@@ -4,6 +4,10 @@ namespace JonasPardon\LaravelEventVisualizer;
 
 use Closure;
 use Illuminate\Support\Str;
+use JonasPardon\LaravelEventVisualizer\Models\Event;
+use JonasPardon\LaravelEventVisualizer\Models\Job;
+use JonasPardon\LaravelEventVisualizer\Models\Listener;
+use JonasPardon\LaravelEventVisualizer\Models\VisualizerNode;
 
 class LaravelEventVisualizer
 {
@@ -71,7 +75,7 @@ class LaravelEventVisualizer
                     continue;
                 }
 
-                $this->fromEventToListener($event, $listener);
+                $this->connectNodes(new Event($event), new Listener($listener));
             }
         }
 
@@ -83,100 +87,32 @@ class LaravelEventVisualizer
         return $this->mermaidString;
     }
 
-    private function getName(string $className): string
-    {
-        $parts = explode( '\\', $className);
-        $name = $parts[count($parts) - 1];
-
-        if ($this->showSubscriberInternalHandlerMethods) {
-            $name =  Str::replace('@', '-', $name);
-        } else {
-            $name = Str::before($name, '@');
-        }
-
-        return $name;
-    }
-
     private function entryExists(string $entry): bool
     {
         return Str::contains($this->mermaidString, $entry);
     }
 
-    private function fromEventToListener(string $event, string $listener): void
+    private function connectNodes(VisualizerNode $from, VisualizerNode $to): void
     {
-        $eventName = $this->getName($event);
-        $listenerName = $this->getName($listener);
-
-        $entry = "{$eventName}[{$eventName}]:::event --> {$listenerName}[{$listenerName}]:::listener" . PHP_EOL;
+        $entry = $this->getNodeString($from) . ' --> ' . $this->getNodeString($to) . PHP_EOL;
 
         if ($this->entryExists($entry)) {
             return;
         }
 
         $this->mermaidString .= $entry;
-        $this->handleChildren($listener, 'listener');
+        $this->handleChildren($to);
     }
 
-    private function fromListenerToJob(string $listener, string $job): void
+    private function getNodeString(VisualizerNode $node): string
     {
-        $listenerName = $this->getName($listener);
-        $jobName = $this->getName($job);
-
-        $entry = "{$listenerName}[{$listenerName}]:::listener --> {$jobName}[{$jobName}]:::job" . PHP_EOL;
-
-        if ($this->entryExists($entry)) {
-            return;
-        }
-
-        $this->mermaidString .= $entry;
-        $this->handleChildren($job, 'job');
+        return "{$node->getIdentifier()}({$node->getName()}):::{$node->getType()}";
     }
 
-    private function fromJobToEvent(string $job, string $event): void
+    private function handleChildren(VisualizerNode $node): void
     {
-        $jobName = $this->getName($job);
-        $eventName = $this->getName($event);
+        $className = $node->getClassName();
 
-        $entry = "{$jobName}[{$jobName}]:::job --> {$eventName}[{$eventName}]:::event" . PHP_EOL;
-
-        if ($this->entryExists($entry)) {
-            return;
-        }
-
-        $this->mermaidString .= $entry;
-    }
-
-    private function fromListenerToEvent(string $listener, string $event): void
-    {
-        $listenerName = $this->getName($listener);
-        $eventName = $this->getName($event);
-
-        $entry = "{$listenerName}[{$listenerName}]:::listener --> {$eventName}[{$eventName}]:::event" . PHP_EOL;
-
-        if ($this->entryExists($entry)) {
-            return;
-        }
-
-        $this->mermaidString .= $entry;
-    }
-
-    private function fromJobToJob(string $job1, string $job2): void
-    {
-        $job1Name = $this->getName($job1);
-        $job2Name = $this->getName($job2);
-
-        $entry = "{$job1Name}[{$job1Name}]:::job --> {$job2Name}[{$job2Name}]:::job" . PHP_EOL;
-
-        if ($this->entryExists($entry)) {
-            return;
-        }
-
-        $this->mermaidString .= $entry;
-        $this->handleChildren($job2, 'job');
-    }
-
-    private function handleChildren(string $className, string $classType): void
-    {
         if (Str::contains($className, '@')) {
             $className = Str::before($className, '@');
         }
@@ -184,41 +120,25 @@ class LaravelEventVisualizer
         if ($this->autoDiscoverJobsAndEvents) {
             $autoDiscoveredJobs = $this->parser->getDispatchedJobsFromClass($className);
 
-            $autoDiscoveredJobs->each(function (string $job) use ($className, $classType) {
-                if ($classType === 'job') {
-                    $this->fromJobToJob($className, $job);
-                } elseif ($classType === 'listener') {
-                    $this->fromListenerToJob($className, $job);
-                }
+            $autoDiscoveredJobs->each(function (string $job) use ($node) {
+                $this->connectNodes($node, new Job($job));
             });
 
             $autoDiscoveredEvents = $this->parser->getDispatchedEventsFromClass($className);
 
-            $autoDiscoveredEvents->each(function (string $event) use ($className, $classType) {
-                if ($classType === 'job') {
-                    $this->fromJobToEvent($className, $event);
-                } elseif ($classType === 'listener') {
-                    $this->fromListenerToEvent($className, $event);
-                }
+            $autoDiscoveredEvents->each(function (string $event) use ($node) {
+                $this->connectNodes($node, new Event($event));
             });
         } else {
             if (method_exists($className, 'dispatchesJobs')) {
                 foreach ($className::dispatchesJobs() as $job) {
-                    if ($classType === 'job') {
-                        $this->fromJobToJob($className, $job);
-                    } elseif ($classType === 'listener') {
-                        $this->fromListenerToJob($className, $job);
-                    }
+                    $this->connectNodes($node, new Job($job));
                 }
             }
 
             if (method_exists($className, 'dispatchesEvents')) {
                 foreach ($className::dispatchesEvents() as $event) {
-                    if ($classType === 'job') {
-                        $this->fromJobToEvent($className, $event);
-                    } elseif ($classType === 'listener') {
-                        $this->fromListenerToEvent($className, $event);
-                    }
+                    $this->connectNodes($node, new Event($event));
                 }
             }
         }
