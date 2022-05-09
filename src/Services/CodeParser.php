@@ -216,7 +216,7 @@ class CodeParser
             return $node instanceof Node\Expr\Assign && $node->var->name === $variable->name;
         });
 
-        if (!$hits || count($hits) === 0) {
+        if (!$hits) {
             return null;
         }
 
@@ -244,6 +244,7 @@ class CodeParser
             VisualizerNode::JOB => new Job($FQN),
             VisualizerNode::EVENT => new Event($FQN),
             VisualizerNode::LISTENER => new Listener($FQN),
+            default => throw new Exception("$nodeType is not a valid VisualizerNode type"),
         };
     }
 
