@@ -4,6 +4,9 @@ namespace JonasPardon\LaravelEventVisualizer\Services;
 
 use Exception;
 use Illuminate\Support\Collection;
+use JonasPardon\LaravelEventVisualizer\Models\Event;
+use JonasPardon\LaravelEventVisualizer\Models\Job;
+use JonasPardon\LaravelEventVisualizer\Models\Listener;
 use JonasPardon\LaravelEventVisualizer\Models\VisualizerNode;
 use PhpParser\Node;
 use PhpParser\Node\Expr\MethodCall;
@@ -65,7 +68,11 @@ class CodeParser
                 $className = $call->args[0]->value->class?->parts[0];
             }
 
-            return $this->buildFullClassName($className, $imports);
+            return $this->getVisualizerNodeFromClassNameAndImports(
+                className: $className,
+                imports: $imports,
+                nodeType: VisualizerNode::JOB,
+            );
         });
         $staticCalls = $staticCalls->map(function (StaticCall $call) use ($imports, $nodes) {
             if ($call->args[0]->value instanceof Node\Expr\Variable) {
@@ -74,7 +81,11 @@ class CodeParser
                 $className = $call->args[0]->value->class?->parts[0];
             }
 
-            return $this->buildFullClassName($className, $imports);
+            return $this->getVisualizerNodeFromClassNameAndImports(
+                className: $className,
+                imports: $imports,
+                nodeType: VisualizerNode::JOB,
+            );
         });
 
         return $methodCalls->merge($staticCalls);
@@ -109,7 +120,11 @@ class CodeParser
                 $className = $call->args[0]->value->class?->parts[0];
             }
 
-            return $this->buildFullClassName($className, $imports);
+            return $this->getVisualizerNodeFromClassNameAndImports(
+                className: $className,
+                imports: $imports,
+                nodeType: VisualizerNode::EVENT,
+            );
         });
         $staticCalls = $staticCalls->map(function (StaticCall $call) use ($nodes, $imports) {
             if ($call->args[0]->value instanceof Node\Expr\Variable) {
@@ -118,7 +133,11 @@ class CodeParser
                 $className = $call->args[0]->value->class?->parts[0];
             }
 
-            return $this->buildFullClassName($className, $imports);
+            return $this->getVisualizerNodeFromClassNameAndImports(
+                className: $className,
+                imports: $imports,
+                nodeType: VisualizerNode::EVENT,
+            );
         });
 
         return $methodCalls->merge($staticCalls);
@@ -210,10 +229,14 @@ class CodeParser
         return $hits[0]->expr->class->parts[0];
     }
 
-    private function buildFullClassName(string $className, ?Collection $imports = null): string
-    {
-        if ($imports) {
-            return $imports->filter(function (string $import) use ($className) {
+    private function getVisualizerNodeFromClassNameAndImports(
+        string $className,
+        Collection $imports,
+        string $nodeType,
+    ): VisualizerNode {
+        // todo: make sure we can also get the FQN if it's not in the imports
+        // We initialize it to the classname as we might not get a hit on the imports
+        $FQN = $imports->filter(function (string $import) use ($className) {
                 $parts = explode('\\', $import);
 
                 if (in_array($className, $parts)) {
@@ -222,9 +245,12 @@ class CodeParser
 
                 return false;
             })->first() ?? $className;
-        }
 
-        return $className;
+        return match ($nodeType) {
+            VisualizerNode::JOB => new Job($FQN),
+            VisualizerNode::EVENT => new Event($FQN),
+            VisualizerNode::LISTENER => new Listener($FQN),
+        };
     }
 
     private function getCodeFromClass(string $className): string

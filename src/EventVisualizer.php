@@ -103,32 +103,32 @@ class EventVisualizer
         $this->handleChildren($to);
     }
 
-    private function handleChildren(VisualizerNode $node): void
+    private function handleChildren(VisualizerNode $parentNode): void
     {
-        $className = $node->getClassName();
+        $className = $parentNode->getClassName();
 
         if ($this->autoDiscoverJobsAndEvents) {
-            $autoDiscoveredJobs = $this->parser->getDispatchedJobsFromVisualizerNode($node);
+            $this->parser
+                ->getDispatchedJobsFromVisualizerNode($parentNode)
+                ->each(function (Job $job) use ($parentNode) {
+                    $this->connectNodes($parentNode, $job);
+                });
 
-            $autoDiscoveredJobs->each(function (string $job) use ($node) {
-                $this->connectNodes($node, new Job($job));
-            });
-
-            $autoDiscoveredEvents = $this->parser->getDispatchedEventsFromVisualizerNode($node);
-
-            $autoDiscoveredEvents->each(function (string $event) use ($node) {
-                $this->connectNodes($node, new Event($event));
-            });
+            $this->parser
+                ->getDispatchedEventsFromVisualizerNode($parentNode)
+                ->each(function (Event $event) use ($parentNode) {
+                    $this->connectNodes($parentNode, $event);
+                });
         } else {
             if (method_exists($className, 'dispatchesJobs')) {
                 foreach ($className::dispatchesJobs() as $job) {
-                    $this->connectNodes($node, new Job($job));
+                    $this->connectNodes($parentNode, new Job($job));
                 }
             }
 
             if (method_exists($className, 'dispatchesEvents')) {
                 foreach ($className::dispatchesEvents() as $event) {
-                    $this->connectNodes($node, new Event($event));
+                    $this->connectNodes($parentNode, new Event($event));
                 }
             }
         }
