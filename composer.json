@@ -18,6 +18,7 @@
     "require": {
         "php": "^8.0",
         "illuminate/contracts": "^9.0",
+        "jonaspardon/mermaid-php": "dev-main",
         "nikic/php-parser": "^4.13",
         "spatie/laravel-package-tools": "^1.9.2"
     },
@@ -67,6 +68,12 @@
             }
         }
     },
+    "repositories": [
+        {
+            "type": "path",
+            "url": "./../mermaid-php"
+        }
+    ],
     "minimum-stability": "dev",
     "prefer-stable": true
 }

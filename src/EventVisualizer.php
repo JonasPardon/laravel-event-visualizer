@@ -11,6 +11,11 @@ use JonasPardon\LaravelEventVisualizer\Models\Job;
 use JonasPardon\LaravelEventVisualizer\Models\Listener;
 use JonasPardon\LaravelEventVisualizer\Models\VisualizerNode;
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
+use JonasPardon\Mermaid\Models\Graph;
+use JonasPardon\Mermaid\Models\Link;
+use JonasPardon\Mermaid\Models\Node;
+use JonasPardon\Mermaid\Models\Style;
+use JonasPardon\Mermaid\VO\NodeShape;
 
 class EventVisualizer
 {
@@ -21,6 +26,7 @@ class EventVisualizer
     private string $jobColor;
     private bool $autoDiscoverJobsAndEvents;
     private string $mermaidString = '';
+    private Graph $graph;
 
     public function __construct(private CodeParser $parser)
     {
@@ -30,12 +36,24 @@ class EventVisualizer
         $this->listenerColor = config('event-visualizer.theme.colors.listener', '#74b9ff');
         $this->jobColor = config('event-visualizer.theme.colors.job', '#a29bfe');
         $this->autoDiscoverJobsAndEvents = config('event-visualizer.auto_discover_jobs_and_events', false);
+        $this->graph = new Graph();
     }
 
     public function getMermaidStringForEvents(): string
     {
         $events = $this->getRawAppEvents();
-        return $this->buildMermaidString($events);
+        $mermaid = $this->buildMermaidString($events);
+
+//        return $mermaid;
+
+//        dd(
+//            $mermaid,
+//            $this->graph->render(),
+//        );
+
+        return $this->graph->render();
+
+//        return $this->buildMermaidString($events);
     }
 
     private function getRawAppEvents(): array
@@ -95,7 +113,25 @@ class EventVisualizer
 
     private function connectNodes(VisualizerNode $from, VisualizerNode $to): void
     {
-        $entry = $from->toString() . ' --> ' . $to->toString() . PHP_EOL;
+        $fromNode = new Node(
+            identifier: $from->getIdentifier(),
+            title: $from->getName(),
+            shape: new NodeShape(NodeShape::ROUND_EDGES),
+            style: $from->getStyle(),
+        );
+        $toNode = new Node(
+            identifier: $to->getIdentifier(),
+            title: $to->getName(),
+            shape: new NodeShape(NodeShape::ROUND_EDGES),
+            style: $to->getStyle(),
+        );
+        $link = new Link($fromNode, $toNode);
+
+        $this->graph->addNode($fromNode)
+            ->addNode($toNode)
+            ->addLink($link);
+
+        $entry = $from->toString() . ' --> ' . $to->toString() . ';' . PHP_EOL;
 
         if ($this->entryExists($entry)) {
             return;
