@@ -14,7 +14,6 @@ use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
 use JonasPardon\Mermaid\Models\Graph;
 use JonasPardon\Mermaid\Models\Link;
 use JonasPardon\Mermaid\Models\Node;
-use JonasPardon\Mermaid\Models\Style;
 use JonasPardon\Mermaid\VO\NodeShape;
 
 class EventVisualizer
