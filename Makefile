@@ -3,3 +3,6 @@ lint:
 
 phpstan:
 	php vendor/bin/phpstan
+
+test:
+	php vendor/bin/phpunit
