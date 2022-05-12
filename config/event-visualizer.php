@@ -25,18 +25,4 @@ return [
      * WIP! Will not work as expected.
      */
     'auto_discover_jobs_and_events' => false,
-
-    'theme' => [
-        /**
-         * The type of diagram that Mermaid should use to render the events.
-         * See https://mermaid-js.github.io/mermaid/#/flowchart
-         */
-        'diagram_type' => 'flowchart LR',
-
-        'colors' => [
-            'event' => '#55efc4',
-            'listener' => '#74b9ff',
-            'job' => '#a29bfe',
-        ],
-    ],
 ];
