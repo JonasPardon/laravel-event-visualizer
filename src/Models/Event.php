@@ -16,9 +16,9 @@ final class Event extends VisualizerNode
     public function getStyle(): Style
     {
         return new Style(
-            backgroundColor: config('event-visualizer.theme.colors.event', '#55efc4'),
-            fontColor: null,
-            borderColor: null
+            backgroundColor: '#16a085',
+            fontColor: '#ffffff',
+            borderColor: '#16a085',
         );
     }
 }

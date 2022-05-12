@@ -16,9 +16,9 @@ final class Job extends VisualizerNode
     public function getStyle(): Style
     {
         return new Style(
-            backgroundColor: config('event-visualizer.theme.colors.job', '#a29bfe'),
-            fontColor: null,
-            borderColor: null
+            backgroundColor: '#cd6133',
+            fontColor: '#ffffff',
+            borderColor: '#cd6133',
         );
     }
 }

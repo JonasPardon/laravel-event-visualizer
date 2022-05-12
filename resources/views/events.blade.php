@@ -9,7 +9,6 @@
 <body>
 <div>
   <div class="mermaid">
-    {{ config('laravel-event-visualizer.theme.diagram_type', 'flowchart LR') }}
     {{ $events }}
   </div>
 </div>

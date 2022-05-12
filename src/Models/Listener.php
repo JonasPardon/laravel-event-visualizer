@@ -16,9 +16,9 @@ final class Listener extends VisualizerNode
     public function getStyle(): Style
     {
         return new Style(
-            backgroundColor: config('event-visualizer.theme.colors.listener', '#74b9ff'),
-            fontColor: null,
-            borderColor: null
+            backgroundColor: '#40407a',
+            fontColor: '#ffffff',
+            borderColor: '#40407a',
         );
     }
 }

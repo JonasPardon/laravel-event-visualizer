@@ -14,16 +14,13 @@ use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
 use JonasPardon\Mermaid\Models\Graph;
 use JonasPardon\Mermaid\Models\Link;
 use JonasPardon\Mermaid\Models\Node;
-use JonasPardon\Mermaid\Models\Style;
+use JonasPardon\Mermaid\VO\LinkStyle;
 use JonasPardon\Mermaid\VO\NodeShape;
 
 class EventVisualizer
 {
     private bool $showLaravelEvents;
     private array $classesToIgnore;
-    private string $eventColor;
-    private string $listenerColor;
-    private string $jobColor;
     private bool $autoDiscoverJobsAndEvents;
     private string $mermaidString = '';
     private Graph $graph;
@@ -32,9 +29,6 @@ class EventVisualizer
     {
         $this->showLaravelEvents = config('event-visualizer.show_laravel_events', false);
         $this->classesToIgnore = config('event-visualizer.classes_to_ignore', []);
-        $this->eventColor = config('event-visualizer.theme.colors.event', '#55efc4');
-        $this->listenerColor = config('event-visualizer.theme.colors.listener', '#74b9ff');
-        $this->jobColor = config('event-visualizer.theme.colors.job', '#a29bfe');
         $this->autoDiscoverJobsAndEvents = config('event-visualizer.auto_discover_jobs_and_events', false);
         $this->graph = new Graph();
     }
@@ -42,18 +36,9 @@ class EventVisualizer
     public function getMermaidStringForEvents(): string
     {
         $events = $this->getRawAppEvents();
-        $mermaid = $this->buildMermaidString($events);
-
-//        return $mermaid;
-
-//        dd(
-//            $mermaid,
-//            $this->graph->render(),
-//        );
+        $this->addEventsToGraph($events);
 
         return $this->graph->render();
-
-//        return $this->buildMermaidString($events);
     }
 
     private function getRawAppEvents(): array
@@ -80,7 +65,7 @@ class EventVisualizer
         return $sanitizedEvents;
     }
 
-    public function buildMermaidString(array $events): string
+    public function addEventsToGraph(array $events): void
     {
         foreach ($events as $event => $listeners) {
             if (!$this->showLaravelEvents && !Str::startsWith($event, 'App')) {
@@ -97,13 +82,6 @@ class EventVisualizer
                 $this->connectNodes(new Event($event), new Listener($listener));
             }
         }
-
-        // Add styling to classes. Classes are defined with the ':::' above
-        $this->mermaidString .= "classDef event fill:{$this->eventColor};" . PHP_EOL;
-        $this->mermaidString .= "classDef listener fill:{$this->listenerColor};" . PHP_EOL;
-        $this->mermaidString .= "classDef job fill:{$this->jobColor};" . PHP_EOL;
-
-        return $this->mermaidString;
     }
 
     private function entryExists(string $entry): bool
@@ -125,7 +103,7 @@ class EventVisualizer
             shape: new NodeShape(NodeShape::ROUND_EDGES),
             style: $to->getStyle(),
         );
-        $link = new Link($fromNode, $toNode);
+        $link = new Link($fromNode, $toNode, null, new LinkStyle(LinkStyle::ARROW_HEAD));
 
         $this->graph->addNode($fromNode)
             ->addNode($toNode)
