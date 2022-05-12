@@ -54,30 +54,6 @@ final class EventVisualizerTest extends TestCase
     }
 
     /** @test */
-    public function it_defines_theme_colors(): void
-    {
-        $visualizer = new EventVisualizer($this->codeParser);
-        $output = $visualizer->buildMermaidString([]);
-
-        $eventColor = config('event-visualizer.theme.colors.event');
-        $listenerColor = config('event-visualizer.theme.colors.listener');
-        $jobColor = config('event-visualizer.theme.colors.job');
-
-        $this->assertStringContainsString(
-            "classDef event fill:{$eventColor};",
-            $output,
-        );
-        $this->assertStringContainsString(
-            "classDef listener fill:{$listenerColor};",
-            $output,
-        );
-        $this->assertStringContainsString(
-            "classDef job fill:{$jobColor};",
-            $output,
-        );
-    }
-
-    /** @test */
     public function it_includes_laravel_events_if_so_configured(): void
     {
         Config::set('event-visualizer.show_laravel_events', true);
