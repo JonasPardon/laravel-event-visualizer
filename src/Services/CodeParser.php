@@ -18,6 +18,7 @@ use PhpParser\NodeTraverser;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
 use ReflectionClass;
+use Throwable;
 
 class CodeParser
 {
@@ -40,26 +41,30 @@ class CodeParser
         $syntaxTree = $this->parser->parse($code);
         $nodes = $this->traverser->traverse($syntaxTree);
 
-        $methodCalls = $this->getMethodCalls(
-            $nodes,
-            ['jobDispatcher'],
-            [
-                'dispatch',
-                'dispatchNow',
-                'dispatchSync',
-            ],
-        );
-        $staticCalls = $this->getStaticCalls(
-            $nodes,
-            ['Bus'],
-            [
-                'dispatch',
-                'dispatchNow',
-                'dispatchSync',
-                'dispatchAfterResponse',
-                'dispatchToQueue',
-            ],
-        );
+        try {
+            $methodCalls = $this->getMethodCalls(
+                $nodes,
+                ['jobDispatcher'],
+                [
+                    'dispatch',
+                    'dispatchNow',
+                    'dispatchSync',
+                ],
+            );
+            $staticCalls = $this->getStaticCalls(
+                $nodes,
+                ['Bus'],
+                [
+                    'dispatch',
+                    'dispatchNow',
+                    'dispatchSync',
+                    'dispatchAfterResponse',
+                    'dispatchToQueue',
+                ],
+            );
+        } catch (Throwable $e) {
+            return collect([]);
+        }
 
         return $this->getVisualizerNodesOfTypeFromCalls(
             visualizerNodeType: VisualizerNode::JOB,
@@ -79,16 +84,20 @@ class CodeParser
         $syntaxTree = $this->parser->parse($code);
         $nodes = $this->traverser->traverse($syntaxTree);
 
-        $methodCalls = $this->getMethodCalls(
-            $nodes,
-            ['eventDispatcher'],
-            ['dispatch'],
-        );
-        $staticCalls = $this->getStaticCalls(
-            $nodes,
-            ['Event'],
-            ['dispatch'],
-        );
+        try {
+            $methodCalls = $this->getMethodCalls(
+                $nodes,
+                ['eventDispatcher'],
+                ['dispatch'],
+            );
+            $staticCalls = $this->getStaticCalls(
+                $nodes,
+                ['Event'],
+                ['dispatch'],
+            );
+        } catch (Throwable $e) {
+            return collect([]);
+        }
 
         return $this->getVisualizerNodesOfTypeFromCalls(
             visualizerNodeType: VisualizerNode::EVENT,
