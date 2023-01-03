@@ -8,20 +8,20 @@ use Illuminate\Support\Facades\Config;
 use JonasPardon\LaravelEventVisualizer\EventVisualizer;
 use JonasPardon\LaravelEventVisualizer\Models\Event;
 use JonasPardon\LaravelEventVisualizer\Models\Listener;
-use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
+use JonasPardon\LaravelEventVisualizer\Services\CodeParserLegacy;
 use JonasPardon\LaravelEventVisualizer\Tests\TestCase;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 
 final class EventVisualizerTest extends TestCase
 {
-    private CodeParser $codeParser;
+    private CodeParserLegacy $codeParser;
 
     protected function setUp(): void
     {
         parent::setUp();
 
-        $this->codeParser = new CodeParser(
+        $this->codeParser = new CodeParserLegacy(
             new NodeTraverser(),
             new NodeFinder(),
         );

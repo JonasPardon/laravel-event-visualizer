@@ -10,7 +10,7 @@ use JonasPardon\LaravelEventVisualizer\Models\Event;
 use JonasPardon\LaravelEventVisualizer\Models\Job;
 use JonasPardon\LaravelEventVisualizer\Models\Listener;
 use JonasPardon\LaravelEventVisualizer\Models\VisualizerNode;
-use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
+use JonasPardon\LaravelEventVisualizer\Services\CodeParserLegacy;
 use JonasPardon\Mermaid\Models\Graph;
 use JonasPardon\Mermaid\Models\Link;
 use JonasPardon\Mermaid\Models\Node;
@@ -25,7 +25,7 @@ class EventVisualizer
     private string $mermaidString = '';
     private Graph $graph;
 
-    public function __construct(private CodeParser $parser)
+    public function __construct(private CodeParserLegacy $parser)
     {
         $this->showLaravelEvents = config('event-visualizer.show_laravel_events', false);
         $this->classesToIgnore = config('event-visualizer.classes_to_ignore', []);
