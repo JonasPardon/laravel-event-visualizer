@@ -38,6 +38,35 @@ final class CodeParserTest extends TestCase
         $this->assertEquals($expectedStaticCalls, $staticCalls);
     }
 
+    /** @test */
+    public function it_throws_when_multiple_imports_are_defined_on_one_line(): void
+    {
+        $this->expectException(\Exception::class);
+        $this->expectExceptionMessage('Multiple imports in one line not supported for now');
+
+        $this->codeParser->getStaticCalls(
+            code: <<<'CODE'
+                <?php declare(strict_types=1);
+                
+                use \Event, \Bus;
+                
+                final class ClassName
+                {
+                    public function __construct()
+                    {
+                    }
+                
+                    public function classMethod(): void
+                    {
+                        Event::dispatch();
+                    }
+                }
+                CODE,
+            subjectClass: 'Illuminate\Support\Facades\Event',
+            methodName: 'dispatch',
+        );
+    }
+
     public function providesCodeSamples(): array
     {
         return [
@@ -237,6 +266,38 @@ final class CodeParserTest extends TestCase
                 'Illuminate\Support\Facades\Event',
                 'dispatch',
                 [],
+            ],
+            'multiple static dispatch calls on Event facade FQN with import' => [
+                <<<'CODE'
+                <?php declare(strict_types=1);
+                
+                use \Illuminate\Support\Facades\Event;
+                
+                final class ClassName
+                {
+                    public function __construct()
+                    {
+                    }
+                    
+                    public function classMethod(): void
+                    {
+                        Event::dispatch($event1);
+                        Event::dispatch($event2);
+                    }
+                }
+                CODE,
+                'Illuminate\Support\Facades\Event',
+                'dispatch',
+                [
+                    [
+                        'class' => 'Illuminate\Support\Facades\Event',
+                        'method' => 'dispatch',
+                    ],
+                    [
+                        'class' => 'Illuminate\Support\Facades\Event',
+                        'method' => 'dispatch',
+                    ],
+                ],
             ],
         ];
     }
