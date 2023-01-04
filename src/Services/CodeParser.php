@@ -8,6 +8,7 @@ use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
+use Exception;
 
 class CodeParser
 {
@@ -68,7 +69,7 @@ class CodeParser
         if ($foundImport !== null) {
             return $foundImport['alias'] === $classToCheckAgainst || $foundImport['class'] === $classToCheckAgainst;
         }
-        
+
         return false;
     }
 
@@ -89,7 +90,7 @@ class CodeParser
             }
 
             if (count($node->uses) > 1) {
-                throw new \Exception('Multiple imports in one line not supported for now');
+                throw new Exception('Multiple imports in one line not supported for now');
             }
 
             foreach ($node->uses as $use) {
