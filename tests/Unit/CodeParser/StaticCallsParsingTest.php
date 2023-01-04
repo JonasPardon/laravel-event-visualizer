@@ -1,11 +1,11 @@
 <?php declare(strict_types=1);
 
-namespace JonasPardon\LaravelEventVisualizer\Tests\Unit;
+namespace JonasPardon\LaravelEventVisualizer\Tests\Unit\CodeParser;
 
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
 use JonasPardon\LaravelEventVisualizer\Tests\TestCase;
 
-final class CodeParserTest extends TestCase
+final class StaticCallsParsingTest extends TestCase
 {
     private CodeParser $codeParser;
 

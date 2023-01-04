@@ -4,6 +4,8 @@ namespace JonasPardon\LaravelEventVisualizer\Services;
 
 use PhpParser\Node;
 use PhpParser\Node\Expr\StaticCall;
+use PhpParser\Node\Expr\MethodCall;
+use PhpParser\Node\Expr\Variable;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\Parser;
@@ -30,7 +32,7 @@ class CodeParser
         $syntaxTree = $this->parser->parse($code);
         $nodes = $this->nodeTraverser->traverse($syntaxTree);
 
-        $nodes = $this->nodeFinder->find($nodes, function (Node $node) use ($code, $subjectClass, $methodName) {
+        $calls = $this->nodeFinder->find($nodes, function (Node $node) use ($code, $subjectClass, $methodName) {
             if (!$node instanceof StaticCall) {
                 return false;
             }
@@ -41,10 +43,10 @@ class CodeParser
             }
 
             // 2. Check if variable it's called on is an instance of the subject class
-            return $this->isInstanceOf($code, $node->class->toString(), $subjectClass);
+            return $this->isStaticInstanceOf($code, $node->class->toString(), $subjectClass);
         });
 
-        return collect($nodes)->map(function (StaticCall $node) use ($code, $subjectClass, $methodName) {
+        return collect($calls)->map(function (StaticCall $node) use ($code, $subjectClass, $methodName) {
             return [
                 // 'class' => $node->class->toString(),
                 'class' => $subjectClass,
@@ -54,7 +56,43 @@ class CodeParser
         })->toArray();
     }
 
-    public function isInstanceOf(string $code, string $classToCheck, string $classToCheckAgainst): bool
+    public function getMethodCalls(
+        string $code,
+        string $subjectClass,
+        string $methodName,
+    ): array {
+        $syntaxTree = $this->parser->parse($code);
+        $nodes = $this->nodeTraverser->traverse($syntaxTree);
+
+        $calls = $this->nodeFinder->find($nodes, function (Node $node) use ($code, $subjectClass, $methodName) {
+            if (!$node instanceof MethodCall) {
+                return false;
+            }
+
+            // 1. Check if call matches what we're looking for ('like 'dispatch')
+            if ($node->name->toString() !== $methodName) {
+                return false;
+            }
+
+            if ($node->var->getType() !== 'Expr_Variable') {
+                throw new \Exception('Not implemented');
+            }
+
+            // 2. Check if variable it's called on is an instance of the subject class
+            return $this->isVariableInstanceOf($code, $node->var->name, $subjectClass);
+        });
+
+        return collect($calls)->map(function (StaticCall $node) use ($code, $subjectClass, $methodName) {
+            return [
+                // 'class' => $node->class->toString(),
+                'class' => $subjectClass,
+                'method' => $node->name->toString(),
+                // 'arguments' => $node->args,
+            ];
+        })->toArray();
+    }
+
+    public function isStaticInstanceOf(string $code, string $classToCheck, string $classToCheckAgainst): bool
     {
         $classToCheck = implode('\\', explode('\\', $classToCheck));
         $classToCheckAgainst = implode('\\', explode('\\', $classToCheckAgainst));
@@ -69,6 +107,32 @@ class CodeParser
             return $foundImport['alias'] === $classToCheckAgainst || $foundImport['class'] === $classToCheckAgainst;
         }
         
+        return false;
+    }
+
+    public function isVariableInstanceOf(string $code, string $variable, string $class): bool
+    {
+        $class = implode('\\', explode('\\', $class));
+
+        $syntaxTree = $this->parser->parse($code);
+        $nodes = $this->nodeTraverser->traverse($syntaxTree);
+
+        $calls = $this->nodeFinder->find($nodes, function (Node $node) use ($code, $variable, $class) {
+            if (!$node instanceof Variable) {
+                return false;
+            }
+
+            $foundImport = $this->findImport($code, $class);
+
+            dd($node, $foundImport);
+
+            // if ($node->name->toString() !== $variable) {
+            //     return false;
+            // }
+            //
+            // return $this->isStaticInstanceOf($code, $node->class->toString(), $class);
+        });
+
         return false;
     }
 
