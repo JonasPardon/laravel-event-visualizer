@@ -76,7 +76,7 @@ class CodeParser
             }
 
             if ($node->var->getType() !== 'Expr_Variable') {
-                throw new \Exception('Not implemented');
+                throw new Exception('Not implemented');
             }
 
             // 2. Check if variable it's called on is an instance of the subject class

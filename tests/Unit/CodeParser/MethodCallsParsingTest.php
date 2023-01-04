@@ -4,6 +4,7 @@ namespace JonasPardon\LaravelEventVisualizer\Tests\Unit\CodeParser;
 
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
 use JonasPardon\LaravelEventVisualizer\Tests\TestCase;
+use Exception;
 
 final class MethodCallsParsingTest extends TestCase
 {
@@ -43,7 +44,7 @@ final class MethodCallsParsingTest extends TestCase
     {
         $this->markTestSkipped('Not implemented yet');
 
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Multiple imports in one line not supported for now');
 
         $this->codeParser->getStaticCalls(
