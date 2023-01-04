@@ -4,6 +4,7 @@ namespace JonasPardon\LaravelEventVisualizer\Tests\Unit\CodeParser;
 
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
 use JonasPardon\LaravelEventVisualizer\Tests\TestCase;
+use Exception;
 
 final class StaticCallsParsingTest extends TestCase
 {
@@ -41,7 +42,7 @@ final class StaticCallsParsingTest extends TestCase
     /** @test */
     public function it_throws_when_multiple_imports_are_defined_on_one_line(): void
     {
-        $this->expectException(\Exception::class);
+        $this->expectException(Exception::class);
         $this->expectExceptionMessage('Multiple imports in one line not supported for now');
 
         $this->codeParser->getStaticCalls(
