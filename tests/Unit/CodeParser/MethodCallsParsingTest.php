@@ -25,18 +25,18 @@ final class MethodCallsParsingTest extends TestCase
         string $code,
         string $subjectClass,
         string $methodName,
-        array $expectedStaticCalls,
+        array $expectedMethodCalls,
     ): void {
-        dump("Looking for {$subjectClass}::{$methodName}", $code);
+        dump("Looking for {$subjectClass}->{$methodName}", $code);
 
-        $staticCalls = $this->codeParser->getMethodCalls(
+        $methodCalls = $this->codeParser->getMethodCalls(
             code: $code,
             subjectClass: $subjectClass,
             methodName: $methodName,
         );
 
-        $this->assertCount(count($expectedStaticCalls), $staticCalls);
-        $this->assertEquals($expectedStaticCalls, $staticCalls);
+        $this->assertCount(count($expectedMethodCalls), $methodCalls);
+        $this->assertEquals($expectedMethodCalls, $methodCalls);
     }
 
     /** @test */

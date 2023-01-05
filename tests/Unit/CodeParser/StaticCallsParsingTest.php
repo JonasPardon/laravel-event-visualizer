@@ -27,8 +27,6 @@ final class StaticCallsParsingTest extends TestCase
         string $methodName,
         array $expectedStaticCalls,
     ): void {
-        // dump("Looking for {$subjectClass}::{$methodName}", $code);
-
         $staticCalls = $this->codeParser->getStaticCalls(
             code: $code,
             subjectClass: $subjectClass,
