@@ -34,6 +34,42 @@ final class VariableResolverTest extends TestCase
         $code = <<<'CODE'
             <?php
             
+            use Some\Namespace\SomeClass;
+            
+            class ClassName
+            {
+                public function someMethod()
+                {
+                    $someVariable = new Some\Namespace\SomeClass();
+                }
+            }
+            CODE;
+
+        $syntaxTree = $this->parser->parse($code);
+        $nodes = $this->nodeTraverser->traverse($syntaxTree);
+
+        $node = $this->nodeFinder->findFirst($nodes, function (Node $node) {
+            return $node instanceof Assign;
+        });
+
+        $variable = $node->var;
+
+        $resolvedClass = $this->codeParser->resolveClassFromVariable(
+            variable: $variable,
+            nodes: $nodes,
+        );
+
+        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
+    }
+
+    /** @test */
+    public function it_can_resolve_the_class_of_a_variable_with_the_new_keyword_and_imported_class(): void
+    {
+        $code = <<<'CODE'
+            <?php
+            
+            use Some\Namespace\SomeClass;
+            
             class ClassName
             {
                 public function someMethod()
@@ -57,22 +93,22 @@ final class VariableResolverTest extends TestCase
             nodes: $nodes,
         );
 
-        $this->assertEquals('SomeClass', $resolvedClass);
+        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
     }
 
     /** @test */
-    public function it_can_resolve_the_class_of_a_variable_with_the_new_keyword_and_imported_class(): void
+    public function it_can_resolve_the_class_of_a_variable_with_the_new_keyword_and_imported_class_with_alias(): void
     {
         $code = <<<'CODE'
             <?php
             
-            use Some\Namespace\SomeClass;
+            use Some\Namespace\SomeClass as AliasName;
             
             class ClassName
             {
                 public function someMethod()
                 {
-                    $someVariable = new SomeClass();
+                    $someVariable = new AliasName();
                 }
             }
             CODE;
