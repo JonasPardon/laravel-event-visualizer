@@ -8,15 +8,6 @@ use Exception;
 
 final class StaticCallsParsingTest extends TestCase
 {
-    private CodeParser $codeParser;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->codeParser = new CodeParser();
-    }
-
     /**
      * @test
      * @dataProvider providesCodeSamples
@@ -27,8 +18,8 @@ final class StaticCallsParsingTest extends TestCase
         string $methodName,
         array $expectedStaticCalls,
     ): void {
-        $staticCalls = $this->codeParser->getStaticCalls(
-            code: $code,
+        $codeParser = new CodeParser($code);
+        $staticCalls = $codeParser->getStaticCalls(
             subjectClass: $subjectClass,
             methodName: $methodName,
         );
@@ -43,8 +34,8 @@ final class StaticCallsParsingTest extends TestCase
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Multiple imports in one line not supported for now');
 
-        $this->codeParser->getStaticCalls(
-            code: <<<'CODE'
+        $codeParser = new CodeParser(
+            <<<'CODE'
                 <?php declare(strict_types=1);
                 
                 use \Event, \Bus;
@@ -60,7 +51,10 @@ final class StaticCallsParsingTest extends TestCase
                         Event::dispatch();
                     }
                 }
-                CODE,
+                CODE
+        );
+
+        $codeParser->getStaticCalls(
             subjectClass: 'Illuminate\Support\Facades\Event',
             methodName: 'dispatch',
         );

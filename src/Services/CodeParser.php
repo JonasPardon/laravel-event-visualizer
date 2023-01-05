@@ -21,22 +21,23 @@ class CodeParser
     private NodeFinder $nodeFinder;
     private Parser $parser;
 
-    public function __construct()
+    private array $nodes;
+
+    public function __construct(string $code)
     {
         $this->nodeTraverser = new NodeTraverser();
         $this->nodeFinder = new NodeFinder();
         $this->parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
+
+        $syntaxTree = $this->parser->parse($code);
+        $this->nodes = $this->nodeTraverser->traverse($syntaxTree);
     }
 
     public function getStaticCalls(
-        string $code,
         string $subjectClass,
         string $methodName,
     ): array {
-        $syntaxTree = $this->parser->parse($code);
-        $nodes = $this->nodeTraverser->traverse($syntaxTree);
-
-        $calls = $this->nodeFinder->find($nodes, function (Node $node) use ($nodes, $subjectClass, $methodName) {
+        $calls = $this->nodeFinder->find($this->nodes, function (Node $node) use ($subjectClass, $methodName) {
             if (!$node instanceof StaticCall) {
                 return false;
             }
@@ -47,10 +48,10 @@ class CodeParser
             }
 
             // 2. Check if variable it's called on is an instance of the subject class
-            return $this->isStaticInstanceOf($nodes, $node->class->toString(), $subjectClass);
+            return $this->isStaticInstanceOf($node->class->toString(), $subjectClass);
         });
 
-        return collect($calls)->map(function (StaticCall $node) use ($code, $subjectClass, $methodName) {
+        return collect($calls)->map(function (StaticCall $node) use ($subjectClass, $methodName) {
             return [
                 // 'class' => $node->class->toString(),
                 'class' => $subjectClass,
@@ -61,14 +62,10 @@ class CodeParser
     }
 
     public function getMethodCalls(
-        string $code,
         string $subjectClass,
         string $methodName,
     ): array {
-        $syntaxTree = $this->parser->parse($code);
-        $nodes = $this->nodeTraverser->traverse($syntaxTree);
-
-        $calls = $this->nodeFinder->find($nodes, function (Node $node) use ($nodes, $subjectClass, $methodName) {
+        $calls = $this->nodeFinder->find($this->nodes, function (Node $node) use ($subjectClass, $methodName) {
             if (!$node instanceof MethodCall) {
                 return false;
             }
@@ -84,12 +81,12 @@ class CodeParser
 
             // 2. Check if variable it's called on is an instance of the subject class
             dd($node->var);
-            dd($this->resolveClassFromVariable($node->var, $nodes));
-            return $this->resolveClassFromVariable($node->var, $nodes) === $subjectClass;
+            dd($this->resolveClassFromVariable($node->var, $this->nodes));
+            return $this->resolveClassFromVariable($node->var, $this->nodes) === $subjectClass;
             // return $this->isVariableInstanceOf($code, $node->var->name, $subjectClass);
         });
 
-        return collect($calls)->map(function (StaticCall $node) use ($code, $subjectClass, $methodName) {
+        return collect($calls)->map(function (StaticCall $node) use ($subjectClass, $methodName) {
             return [
                 // 'class' => $node->class->toString(),
                 'class' => $subjectClass,
@@ -99,7 +96,7 @@ class CodeParser
         })->toArray();
     }
 
-    public function isStaticInstanceOf(array $nodes, string $classToCheck, string $classToCheckAgainst): bool
+    public function isStaticInstanceOf(string $classToCheck, string $classToCheckAgainst): bool
     {
         $classToCheck = implode('\\', explode('\\', $classToCheck));
         $classToCheckAgainst = implode('\\', explode('\\', $classToCheckAgainst));
@@ -108,7 +105,7 @@ class CodeParser
             return true;
         }
 
-        $foundImport = $this->findImport($nodes, $classToCheck);
+        $foundImport = $this->findImport($classToCheck);
 
         if ($foundImport !== null) {
             return $foundImport['alias'] === $classToCheckAgainst || $foundImport['class'] === $classToCheckAgainst;
@@ -117,35 +114,11 @@ class CodeParser
         return false;
     }
 
-    public function isVariableInstanceOf(array $nodes, string $variable, string $class): bool
+    public function findImport(string $class): ?array
     {
         $class = implode('\\', explode('\\', $class));
 
-        $calls = $this->nodeFinder->find($nodes, function (Node $node) use ($variable, $class, $nodes) {
-            if (!$node instanceof Variable) {
-                return false;
-            }
-
-            $variableName = $node->name;
-            // $foundAssignment = $this->findVariableAssignmentFromNode($code, $variableName, $node);
-            $foundAssignment = $this->resolveClassFromVariable($node, $nodes);
-            dd($foundAssignment);
-
-            $foundImport = $this->findImport($nodes, $class);
-
-            // dd($node, $foundImport);
-
-            return $foundImport !== null;
-        });
-
-        return false;
-    }
-
-    public function findImport(array $nodes, string $class): ?array
-    {
-        $class = implode('\\', explode('\\', $class));
-
-        $importNodes = $this->nodeFinder->find($nodes, function (Node $node) use ($class) {
+        $importNodes = $this->nodeFinder->find($this->nodes, function (Node $node) use ($class) {
             if (!$node instanceof Node\Stmt\Use_) {
                 return false;
             }
@@ -184,12 +157,10 @@ class CodeParser
         ];
     }
 
-    public function resolveClassFromVariable(
-        Variable $variable,
-        array $nodes,
-    ): ?string {
+    public function resolveClassFromVariable(Variable $variable): ?string
+    {
         /** @var Assign[] $assignmentNodes */
-        $assignmentNodes = $this->nodeFinder->find($nodes, function (Node $node) use ($variable) {
+        $assignmentNodes = $this->nodeFinder->find($this->nodes, function (Node $node) use ($variable) {
             if (!$node instanceof Assign) {
                 return false;
             }
@@ -200,7 +171,7 @@ class CodeParser
         foreach ($assignmentNodes as $assignmentNode) {
             if ($assignmentNode->expr instanceof New_) {
                 // First check if it's imported with a use statement
-                $import = $this->findImport($nodes, $assignmentNode->expr->class->toString());
+                $import = $this->findImport($assignmentNode->expr->class->toString());
 
                 if ($import !== null) {
                     return $import['class'];
@@ -214,7 +185,7 @@ class CodeParser
         }
 
         /** @var ClassMethod[] $injectionNodes */
-        $injectionNodes = $this->nodeFinder->find($nodes, function (Node $node) use ($variable) {
+        $injectionNodes = $this->nodeFinder->find($this->nodes, function (Node $node) use ($variable) {
             if (!$node instanceof ClassMethod) {
                 return false;
             }
@@ -233,7 +204,7 @@ class CodeParser
                 $className = implode('\\', $param->type->parts);
 
                 // First check if it's imported with a use statement
-                $import = $this->findImport($nodes, $className);
+                $import = $this->findImport($className);
 
                 if ($import !== null) {
                     return $import['class'];

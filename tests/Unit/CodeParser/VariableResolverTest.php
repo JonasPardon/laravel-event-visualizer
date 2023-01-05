@@ -17,7 +17,6 @@ final class VariableResolverTest extends TestCase
     private readonly NodeTraverser $nodeTraverser;
     private readonly NodeFinder $nodeFinder;
     private readonly Parser $parser;
-    private readonly CodeParser $codeParser;
 
     protected function setUp(): void
     {
@@ -26,7 +25,6 @@ final class VariableResolverTest extends TestCase
         $this->nodeTraverser = new NodeTraverser();
         $this->nodeFinder = new NodeFinder();
         $this->parser = (new ParserFactory())->create(ParserFactory::PREFER_PHP7);
-        $this->codeParser = new CodeParser();
     }
 
     /** @test */
@@ -46,6 +44,7 @@ final class VariableResolverTest extends TestCase
             }
             CODE;
 
+        $codeParser = new CodeParser($code);
         $syntaxTree = $this->parser->parse($code);
         $nodes = $this->nodeTraverser->traverse($syntaxTree);
 
@@ -55,10 +54,7 @@ final class VariableResolverTest extends TestCase
 
         $variable = $node->var;
 
-        $resolvedClass = $this->codeParser->resolveClassFromVariable(
-            variable: $variable,
-            nodes: $nodes,
-        );
+        $resolvedClass = $codeParser->resolveClassFromVariable($variable);
 
         $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
     }
@@ -80,6 +76,7 @@ final class VariableResolverTest extends TestCase
             }
             CODE;
 
+        $codeParser = new CodeParser($code);
         $syntaxTree = $this->parser->parse($code);
         $nodes = $this->nodeTraverser->traverse($syntaxTree);
 
@@ -88,11 +85,7 @@ final class VariableResolverTest extends TestCase
         });
 
         $variable = $node->var;
-
-        $resolvedClass = $this->codeParser->resolveClassFromVariable(
-            variable: $variable,
-            nodes: $nodes,
-        );
+        $resolvedClass = $codeParser->resolveClassFromVariable($variable);
 
         $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
     }
@@ -114,6 +107,7 @@ final class VariableResolverTest extends TestCase
             }
             CODE;
 
+        $codeParser = new CodeParser($code);
         $syntaxTree = $this->parser->parse($code);
         $nodes = $this->nodeTraverser->traverse($syntaxTree);
 
@@ -123,10 +117,7 @@ final class VariableResolverTest extends TestCase
 
         $variable = $node->var;
 
-        $resolvedClass = $this->codeParser->resolveClassFromVariable(
-            variable: $variable,
-            nodes: $nodes,
-        );
+        $resolvedClass = $codeParser->resolveClassFromVariable($variable);
 
         $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
     }
@@ -150,6 +141,7 @@ final class VariableResolverTest extends TestCase
             }
             CODE;
 
+        $codeParser = new CodeParser($code);
         $syntaxTree = $this->parser->parse($code);
         $nodes = $this->nodeTraverser->traverse($syntaxTree);
 
@@ -158,10 +150,7 @@ final class VariableResolverTest extends TestCase
             return $node instanceof Variable && $node->name === 'someVariable';
         });
 
-        $resolvedClass = $this->codeParser->resolveClassFromVariable(
-            variable: $variable,
-            nodes: $nodes,
-        );
+        $resolvedClass = $codeParser->resolveClassFromVariable($variable);
 
         $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
     }
@@ -187,6 +176,7 @@ final class VariableResolverTest extends TestCase
             }
             CODE;
 
+        $codeParser = new CodeParser($code);
         $syntaxTree = $this->parser->parse($code);
         $nodes = $this->nodeTraverser->traverse($syntaxTree);
 
@@ -195,10 +185,7 @@ final class VariableResolverTest extends TestCase
             return $node instanceof Variable && $node->name === 'someVariable';
         });
 
-        $resolvedClass = $this->codeParser->resolveClassFromVariable(
-            variable: $variable,
-            nodes: $nodes,
-        );
+        $resolvedClass = $codeParser->resolveClassFromVariable($variable);
 
         $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
     }
@@ -218,6 +205,7 @@ final class VariableResolverTest extends TestCase
             }
             CODE;
 
+        $codeParser = new CodeParser($code);
         $syntaxTree = $this->parser->parse($code);
         $nodes = $this->nodeTraverser->traverse($syntaxTree);
 
@@ -226,10 +214,7 @@ final class VariableResolverTest extends TestCase
             return $node instanceof Variable && $node->name === 'someVariable';
         });
 
-        $resolvedClass = $this->codeParser->resolveClassFromVariable(
-            variable: $variable,
-            nodes: $nodes,
-        );
+        $resolvedClass = $codeParser->resolveClassFromVariable($variable);
 
         $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
     }
@@ -251,6 +236,7 @@ final class VariableResolverTest extends TestCase
             }
             CODE;
 
+        $codeParser = new CodeParser($code);
         $syntaxTree = $this->parser->parse($code);
         $nodes = $this->nodeTraverser->traverse($syntaxTree);
 
@@ -259,10 +245,7 @@ final class VariableResolverTest extends TestCase
             return $node instanceof Variable && $node->name === 'someVariable';
         });
 
-        $resolvedClass = $this->codeParser->resolveClassFromVariable(
-            variable: $variable,
-            nodes: $nodes,
-        );
+        $resolvedClass = $codeParser->resolveClassFromVariable($variable);
 
         $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
     }

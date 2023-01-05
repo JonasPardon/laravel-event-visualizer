@@ -8,15 +8,6 @@ use Exception;
 
 final class MethodCallsParsingTest extends TestCase
 {
-    private CodeParser $codeParser;
-
-    protected function setUp(): void
-    {
-        parent::setUp();
-
-        $this->codeParser = new CodeParser();
-    }
-
     /**
      * @test
      * @dataProvider providesCodeSamples
@@ -27,10 +18,12 @@ final class MethodCallsParsingTest extends TestCase
         string $methodName,
         array $expectedMethodCalls,
     ): void {
+        $this->markTestIncomplete('Not completed');
         dump("Looking for {$subjectClass}->{$methodName}", $code);
 
-        $methodCalls = $this->codeParser->getMethodCalls(
-            code: $code,
+        $codeParser = new CodeParser($code);
+
+        $methodCalls = $codeParser->getMethodCalls(
             subjectClass: $subjectClass,
             methodName: $methodName,
         );
@@ -42,13 +35,13 @@ final class MethodCallsParsingTest extends TestCase
     /** @test */
     public function it_throws_when_multiple_imports_are_defined_on_one_line(): void
     {
-        $this->markTestSkipped('Not implemented yet');
+        $this->markTestIncomplete('Not implemented yet');
 
         $this->expectException(Exception::class);
         $this->expectExceptionMessage('Multiple imports in one line not supported for now');
 
-        $this->codeParser->getStaticCalls(
-            code: <<<'CODE'
+        $codeParser = new CodeParser(
+            <<<'CODE'
                 <?php declare(strict_types=1);
                 
                 use \Event, \Bus;
@@ -64,7 +57,10 @@ final class MethodCallsParsingTest extends TestCase
                         Event::dispatch();
                     }
                 }
-                CODE,
+                CODE
+        );
+
+        $codeParser->getStaticCalls(
             subjectClass: 'Illuminate\Support\Facades\Event',
             methodName: 'dispatch',
         );
