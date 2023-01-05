@@ -51,12 +51,11 @@ class CodeParser
             }
 
             // 2. Check if variable it's called on is an instance of the subject class
-            return $this->isStaticInstanceOf($node->class->toString(), $subjectClass);
+            return $this->areClassesSame($node->class->toString(), $subjectClass);
         });
 
         return collect($calls)->map(function (StaticCall $node) use ($subjectClass, $methodName) {
             return [
-                // 'class' => $node->class->toString(),
                 'class' => $subjectClass,
                 'method' => $node->name->toString(),
                 'argumentClass' => $this->resolveClassFromArgument($node->args[0]),
@@ -91,37 +90,16 @@ class CodeParser
 
         return collect($calls)->map(function (StaticCall $node) use ($subjectClass, $methodName) {
             return [
-                // 'class' => $node->class->toString(),
                 'class' => $subjectClass,
                 'method' => $node->name->toString(),
-                // 'arguments' => $node->args,
+                'argumentClass' => $this->resolveClassFromArgument($node->args[0]),
             ];
         })->toArray();
     }
 
-    public function isStaticInstanceOf(string $classToCheck, string $classToCheckAgainst): bool
+    public function areClassesSame(string $class1, string $class2): bool
     {
-        // dump($classToCheck . ' --> ' . $this->getFullyQualifiedClassName($classToCheck));
-        // dump($classToCheckAgainst . ' --> ' . $this->getFullyQualifiedClassName($classToCheckAgainst));
-        $classToCheck = $this->getFullyQualifiedClassName($classToCheck);
-        $classToCheckAgainst = $this->getFullyQualifiedClassName($classToCheckAgainst);
-
-        // $classToCheck = implode('\\', explode('\\', $classToCheck));
-        // $classToCheckAgainst = implode('\\', explode('\\', $classToCheckAgainst));
-
-        return $classToCheck === $classToCheckAgainst;
-
-        // if ($classToCheck === $classToCheckAgainst) {
-        //     return true;
-        // }
-        //
-        // $foundImport = $this->findImport($classToCheck);
-        //
-        // if ($foundImport !== null) {
-        //     return $foundImport['alias'] === $classToCheckAgainst || $foundImport['class'] === $classToCheckAgainst;
-        // }
-        //
-        // return false;
+        return $this->getFullyQualifiedClassName($class1) === $this->getFullyQualifiedClassName($class2);
     }
 
     public function resolveClassFromVariable(Variable $variable): ?string
