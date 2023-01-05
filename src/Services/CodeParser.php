@@ -11,6 +11,7 @@ use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\Node\Stmt\Use_;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\Parser;
@@ -100,63 +101,27 @@ class CodeParser
 
     public function isStaticInstanceOf(string $classToCheck, string $classToCheckAgainst): bool
     {
-        $classToCheck = implode('\\', explode('\\', $classToCheck));
-        $classToCheckAgainst = implode('\\', explode('\\', $classToCheckAgainst));
+        // dump($classToCheck . ' --> ' . $this->getFullyQualifiedClassName($classToCheck));
+        // dump($classToCheckAgainst . ' --> ' . $this->getFullyQualifiedClassName($classToCheckAgainst));
+        $classToCheck = $this->getFullyQualifiedClassName($classToCheck);
+        $classToCheckAgainst = $this->getFullyQualifiedClassName($classToCheckAgainst);
 
-        if ($classToCheck === $classToCheckAgainst) {
-            return true;
-        }
+        // $classToCheck = implode('\\', explode('\\', $classToCheck));
+        // $classToCheckAgainst = implode('\\', explode('\\', $classToCheckAgainst));
 
-        $foundImport = $this->findImport($classToCheck);
+        return $classToCheck === $classToCheckAgainst;
 
-        if ($foundImport !== null) {
-            return $foundImport['alias'] === $classToCheckAgainst || $foundImport['class'] === $classToCheckAgainst;
-        }
-
-        return false;
-    }
-
-    public function findImport(string $class): ?array
-    {
-        $class = implode('\\', explode('\\', $class));
-
-        $importNodes = $this->nodeFinder->find($this->nodes, function (Node $node) use ($class) {
-            if (!$node instanceof Node\Stmt\Use_) {
-                return false;
-            }
-
-            if ($node->type !== Node\Stmt\Use_::TYPE_NORMAL) {
-                // We're only looking for class imports
-                return false;
-            }
-
-            if (count($node->uses) > 1) {
-                throw new Exception('Multiple imports in one line not supported for now');
-            }
-
-            foreach ($node->uses as $use) {
-                if ($use->alias !== null) {
-                    return $use->alias->toString() === $class;
-                }
-            }
-
-            return true;
-        });
-
-        if (count($importNodes) === 0) {
-            return null;
-        }
-
-        $importNode = $importNodes[0];
-
-        if (!$importNode) {
-            return null;
-        }
-
-        return [
-            'class' => $importNode->uses[0]->name->toString(),
-            'alias' => $importNode->uses[0]->alias?->name,
-        ];
+        // if ($classToCheck === $classToCheckAgainst) {
+        //     return true;
+        // }
+        //
+        // $foundImport = $this->findImport($classToCheck);
+        //
+        // if ($foundImport !== null) {
+        //     return $foundImport['alias'] === $classToCheckAgainst || $foundImport['class'] === $classToCheckAgainst;
+        // }
+        //
+        // return false;
     }
 
     public function resolveClassFromVariable(Variable $variable): ?string
@@ -226,14 +191,35 @@ class CodeParser
 
     public function getFullyQualifiedClassName(string $className): string
     {
-        // First check if it's imported with a use statement
-        $import = $this->findImport($className);
+        /** @var Use_[] $importNodes */
+        $importNodes = $this->nodeFinder->find($this->nodes, function (Node $node) use ($className) {
+            if (!$node instanceof Use_) {
+                return false;
+            }
 
-        if ($import !== null) {
-            return $import['class'];
+            if ($node->type !== Use_::TYPE_NORMAL) {
+                // We're only looking for class imports
+                return false;
+            }
+
+            if (count($node->uses) > 1) {
+                throw new Exception('Multiple imports in one line not supported for now');
+            }
+
+            foreach ($node->uses as $use) {
+                if ($use->alias !== null) {
+                    return $use->alias->toString() === $className;
+                }
+            }
+
+            return true;
+        });
+
+        if (count($importNodes) === 0) {
+            // Not imported, this is the FQN
+            return $className;
         }
 
-        // Not imported, this is the FQN
-        return $className;
+        return $importNodes[0]->uses[0]->name->toString();
     }
 }
