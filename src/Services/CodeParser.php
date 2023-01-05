@@ -172,15 +172,7 @@ class CodeParser
 
         foreach ($assignmentNodes as $assignmentNode) {
             if ($assignmentNode->expr instanceof New_) {
-                // First check if it's imported with a use statement
-                $import = $this->findImport($assignmentNode->expr->class->toString());
-
-                if ($import !== null) {
-                    return $import['class'];
-                }
-
-                // Not imported, this is the FQN
-                return $assignmentNode->expr->class->toString();
+                return $this->getFullyQualifiedClassName($assignmentNode->expr->class->toString());
             }
 
             // todo: handle other types of assignments
@@ -205,15 +197,7 @@ class CodeParser
             foreach ($injectionNode->params as $param) {
                 $className = implode('\\', $param->type->parts);
 
-                // First check if it's imported with a use statement
-                $import = $this->findImport($className);
-
-                if ($import !== null) {
-                    return $import['class'];
-                }
-
-                // Not imported, this is the FQN
-                return $className;
+                return $this->getFullyQualifiedClassName($className);
             }
 
             // todo: handle other types of assignments
@@ -234,17 +218,22 @@ class CodeParser
                 return $argument->value->class->toString();
             }
 
-            // First check if it's imported with a use statement
-            $import = $this->findImport($argument->value->class->toString());
-
-            if ($import !== null) {
-                return $import['class'];
-            }
-
-            // Not imported, this is the FQN
-            return $argument->value->class->toString();
+            return $this->getFullyQualifiedClassName($argument->value->class->toString());
         }
 
         return null;
+    }
+
+    public function getFullyQualifiedClassName(string $className): string
+    {
+        // First check if it's imported with a use statement
+        $import = $this->findImport($className);
+
+        if ($import !== null) {
+            return $import['class'];
+        }
+
+        // Not imported, this is the FQN
+        return $className;
     }
 }
