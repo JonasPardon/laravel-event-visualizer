@@ -59,7 +59,6 @@ class CodeParser
                 'class' => $subjectClass,
                 'method' => $node->name->toString(),
                 'argumentClass' => $this->resolveClassFromArgument($node->args[0]),
-                // 'arguments' => $node->args,
             ];
         })->toArray();
     }

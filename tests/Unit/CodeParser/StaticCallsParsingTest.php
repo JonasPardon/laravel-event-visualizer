@@ -75,7 +75,7 @@ final class StaticCallsParsingTest extends TestCase
                 
                     public function classMethod(): void
                     {
-                        \Event::dispatch();
+                        \Event::dispatch(new \App\Events\SomeEvent());
                     }
                 }
                 CODE,
@@ -85,6 +85,7 @@ final class StaticCallsParsingTest extends TestCase
                     [
                         'class' => 'Event',
                         'method' => 'dispatch',
+                        'argumentClass' => 'App\Events\SomeEvent',
                     ],
                 ],
             ],
@@ -102,7 +103,7 @@ final class StaticCallsParsingTest extends TestCase
                 
                     public function classMethod(): void
                     {
-                        Event::dispatch();
+                        Event::dispatch(new \App\Events\SomeEvent());
                     }
                 }
                 CODE,
@@ -112,6 +113,7 @@ final class StaticCallsParsingTest extends TestCase
                     [
                         'class' => 'Event',
                         'method' => 'dispatch',
+                        'argumentClass' => 'App\Events\SomeEvent',
                     ],
                 ],
             ],
@@ -127,7 +129,7 @@ final class StaticCallsParsingTest extends TestCase
                 
                     public function classMethod(): void
                     {
-                        \Illuminate\Support\Facades\Event::dispatch();
+                        \Illuminate\Support\Facades\Event::dispatch(new \App\Events\SomeEvent());
                     }
                 }
                 CODE,
@@ -137,6 +139,7 @@ final class StaticCallsParsingTest extends TestCase
                     [
                         'class' => 'Illuminate\Support\Facades\Event',
                         'method' => 'dispatch',
+                        'argumentClass' => 'App\Events\SomeEvent',
                     ],
                 ],
             ],
@@ -154,7 +157,7 @@ final class StaticCallsParsingTest extends TestCase
                     
                     public function classMethod(): void
                     {
-                        Event::dispatch();
+                        Event::dispatch(new \App\Events\SomeEvent());
                     }
                 }
                 CODE,
@@ -164,6 +167,7 @@ final class StaticCallsParsingTest extends TestCase
                     [
                         'class' => 'Illuminate\Support\Facades\Event',
                         'method' => 'dispatch',
+                        'argumentClass' => 'App\Events\SomeEvent',
                     ],
                 ],
             ],
@@ -181,7 +185,7 @@ final class StaticCallsParsingTest extends TestCase
                     
                     public function classMethod(): void
                     {
-                        Alias::dispatch();
+                        Alias::dispatch(new \App\Events\SomeEvent());
                     }
                 }
                 CODE,
@@ -191,6 +195,7 @@ final class StaticCallsParsingTest extends TestCase
                     [
                         'class' => 'Illuminate\Support\Facades\Event',
                         'method' => 'dispatch',
+                        'argumentClass' => 'App\Events\SomeEvent',
                     ],
                 ],
             ],
@@ -274,6 +279,9 @@ final class StaticCallsParsingTest extends TestCase
                     
                     public function classMethod(): void
                     {
+                        $event1 = new \App\Events\SomeEvent();
+                        $event2 = new \App\Events\SomeOtherEvent();
+                    
                         Event::dispatch($event1);
                         Event::dispatch($event2);
                     }
@@ -285,10 +293,12 @@ final class StaticCallsParsingTest extends TestCase
                     [
                         'class' => 'Illuminate\Support\Facades\Event',
                         'method' => 'dispatch',
+                        'argumentClass' => 'App\Events\SomeEvent',
                     ],
                     [
                         'class' => 'Illuminate\Support\Facades\Event',
                         'method' => 'dispatch',
+                        'argumentClass' => 'App\Events\SomeOtherEvent',
                     ],
                 ],
             ],
