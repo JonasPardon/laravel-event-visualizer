@@ -197,29 +197,23 @@ class CodeParser
                 return false;
             }
 
-            if ($node->type !== Use_::TYPE_NORMAL) {
-                // We're only looking for class imports
-                return false;
-            }
-
-            if (count($node->uses) > 1) {
-                throw new Exception('Multiple imports in one line not supported for now');
-            }
-
-            foreach ($node->uses as $use) {
-                if ($use->alias !== null) {
-                    return $use->alias->toString() === $className;
-                }
-            }
-
-            return true;
+            return $node->type === Use_::TYPE_NORMAL; // We're only looking for class imports
         });
 
-        if (count($importNodes) === 0) {
-            // Not imported, this is the FQN
-            return $className;
+        foreach ($importNodes as $importNode) {
+            foreach ($importNode->uses as $use) {
+                if ($use->alias !== null) {
+                    if ($use->alias->toString() === $className) {
+                        return $use->name->toString();
+                    }
+                } else {
+                    if ($use->name->getLast() === $className) {
+                        return $use->name->toString();
+                    }
+                }
+            }
         }
 
-        return $importNodes[0]->uses[0]->name->toString();
+        return $className; // Not imported, this is the FQN
     }
 }

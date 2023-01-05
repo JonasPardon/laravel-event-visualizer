@@ -76,23 +76,16 @@ final class FullyQualifiedClassNameResolverTest extends TestCase
     }
 
     /** @test */
-    public function it_throws_when_multiple_imports_are_defined_on_one_line(): void
+    public function it_supports_multi_use_on_one_line(): void
     {
-        $this->expectException(Exception::class);
-        $this->expectExceptionMessage('Multiple imports in one line not supported for now');
-
         $codeParser = new CodeParser(
             <<<'CODE'
-                <?php declare(strict_types=1);
+                <?php
                 
-                use \Event, \Bus;
+                use Illuminate\Support\Facades\Event, Illuminate\Support\Facades\Bus, App\Events\SomeEvent as SomeEventAlias;
                 
                 final class ClassName
                 {
-                    public function __construct()
-                    {
-                    }
-                
                     public function classMethod(): void
                     {
                         Event::dispatch();
@@ -101,6 +94,13 @@ final class FullyQualifiedClassNameResolverTest extends TestCase
                 CODE
         );
 
-        $codeParser->getFullyQualifiedClassName('Event');
+        $resolvedClass = $codeParser->getFullyQualifiedClassName('Event');
+        $this->assertEquals('Illuminate\Support\Facades\Event', $resolvedClass);
+
+        $resolvedClass = $codeParser->getFullyQualifiedClassName('Bus');
+        $this->assertEquals('Illuminate\Support\Facades\Bus', $resolvedClass);
+
+        $resolvedClass = $codeParser->getFullyQualifiedClassName('SomeEventAlias');
+        $this->assertEquals('App\Events\SomeEvent', $resolvedClass);
     }
 }
