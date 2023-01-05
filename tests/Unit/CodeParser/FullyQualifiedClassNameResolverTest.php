@@ -2,7 +2,6 @@
 
 namespace JonasPardon\LaravelEventVisualizer\Tests\Unit\CodeParser;
 
-use Exception;
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
 use JonasPardon\LaravelEventVisualizer\Tests\TestCase;
 

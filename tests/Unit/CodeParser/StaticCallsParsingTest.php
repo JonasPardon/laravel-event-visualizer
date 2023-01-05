@@ -4,7 +4,6 @@ namespace JonasPardon\LaravelEventVisualizer\Tests\Unit\CodeParser;
 
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
 use JonasPardon\LaravelEventVisualizer\Tests\TestCase;
-use Exception;
 
 final class StaticCallsParsingTest extends TestCase
 {
