@@ -4,10 +4,7 @@ namespace JonasPardon\LaravelEventVisualizer\Tests\Unit\CodeParser;
 
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
 use JonasPardon\LaravelEventVisualizer\Tests\TestCase;
-use PhpParser\Node;
 use PhpParser\Node\Arg;
-use PhpParser\Node\Expr\Assign;
-use PhpParser\Node\Expr\Variable;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\Parser;
