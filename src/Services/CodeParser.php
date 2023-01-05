@@ -3,11 +3,13 @@
 namespace JonasPardon\LaravelEventVisualizer\Services;
 
 use PhpParser\Node;
+use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
@@ -56,6 +58,7 @@ class CodeParser
                 // 'class' => $node->class->toString(),
                 'class' => $subjectClass,
                 'method' => $node->name->toString(),
+                'argumentClass' => $this->resolveClassFromArgument($node->args[0]),
                 // 'arguments' => $node->args,
             ];
         })->toArray();
@@ -218,6 +221,31 @@ class CodeParser
         }
 
         // If we've gotten here, we haven't found a class name.
+        return null;
+    }
+
+    public function resolveClassFromArgument(Arg $argument): ?string
+    {
+        if ($argument->value instanceof Variable) {
+            return $this->resolveClassFromVariable($argument->value);
+        }
+
+        if ($argument->value instanceof New_) {
+            if ($argument->value->class instanceof FullyQualified) {
+                return $argument->value->class->toString();
+            }
+
+            // First check if it's imported with a use statement
+            $import = $this->findImport($argument->value->class->toString());
+
+            if ($import !== null) {
+                return $import['class'];
+            }
+
+            // Not imported, this is the FQN
+            return $argument->value->class->toString();
+        }
+
         return null;
     }
 }
