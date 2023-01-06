@@ -6,9 +6,16 @@ use Closure;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use JonasPardon\LaravelEventVisualizer\Models\Event;
+use JonasPardon\LaravelEventVisualizer\Models\Job;
 use JonasPardon\LaravelEventVisualizer\Models\Listener;
+use JonasPardon\LaravelEventVisualizer\Models\VisualizerNode;
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
+use JonasPardon\LaravelEventVisualizer\Services\CodeParser\ValueObjects\ResolvedCall;
 use JonasPardon\Mermaid\Models\Graph;
+use JonasPardon\Mermaid\Models\Link;
+use JonasPardon\Mermaid\Models\Node;
+use JonasPardon\Mermaid\VO\LinkStyle;
+use JonasPardon\Mermaid\VO\NodeShape;
 use ReflectionClass;
 use Throwable;
 
@@ -18,6 +25,7 @@ class EventVisualizer
     private readonly array $classesToIgnore;
     private readonly bool $autoDiscoverJobsAndEvents;
     private readonly Graph $graph;
+    private readonly Collection $analysedClasses;
 
     public function __construct()
     {
@@ -25,6 +33,8 @@ class EventVisualizer
         $this->classesToIgnore = config('event-visualizer.classes_to_ignore', []);
         $this->autoDiscoverJobsAndEvents = config('event-visualizer.auto_discover_jobs_and_events', false);
         $this->graph = new Graph();
+
+        $this->analysedClasses = new Collection();
     }
 
     public function getMermaidStringForEvents(): string
@@ -32,7 +42,7 @@ class EventVisualizer
         $events = $this->getRawAppEvents();
         $this->addEventsToGraph($events);
 
-        return '';
+        return $this->graph->render();
     }
 
     private function getRawAppEvents(): array
@@ -62,54 +72,90 @@ class EventVisualizer
     public function addEventsToGraph(array $events): void
     {
         foreach ($events as $event => $listeners) {
-            if (!$this->showLaravelEvents && !Str::startsWith($event, 'App')) {
-                // Get only our own events, not the default laravel ones
+            if ($this->isIgnored($event)) {
                 continue;
             }
 
-            foreach ($listeners as $listener) {
-                $this->analyseClass($listener);
+            if (!$this->showLaravelEvents && !Str::startsWith($event, 'App')) {
+                continue; // Get only our own events, not the default laravel ones
+            }
 
-                // $this->connectNodes(new Event($event), new Listener($listener));
+            foreach ($listeners as $listener) {
+                if ($this->isIgnored($listener)) {
+                    continue;
+                }
+
+                $this->connectNodes(
+                    from: new Event($event),
+                    to: new Listener($listener),
+                );
+
+                $this->analyseClass($listener);
             }
         }
     }
 
-    private function analyseClass(string $className)
+    private function analyseClass(string $className): void
     {
-        $sanitizedClassName = Str::before($className, '@');
-
-        if (Str::contains($sanitizedClassName, $this->classesToIgnore)) {
+        if ($this->isIgnored($className)) {
             return;
         }
 
-        // if (Str::contains($sanitizedClassName, 'Totango')) {
-        //     return;
-        // }
+        $sanitizedClassName = Str::before($className, '@');
 
-        $code = $this->getCodeFromClass($sanitizedClassName);
-        $parser = new CodeParser($code);
+        if ($this->analysedClasses->contains($sanitizedClassName)) {
+            return; // Prevent infinite loops since this method is recursive. Also, performance, ya know.
+        }
+
+        $this->analysedClasses->push($sanitizedClassName);
+
+        if (Str::contains($sanitizedClassName, 'StoreEventHistory')) {
+            return;
+        }
 
         try {
+            $code = $this->getCodeFromClass($sanitizedClassName);
+            $parser = new CodeParser($code);
+
             $jobs = $this->getDispatchedJobs($parser);
             $events = $this->getDispatchedEvents($parser);
 
-            if ($jobs->isNotEmpty()) {
-                dump(
-                    "Jobs dispatched by $sanitizedClassName:\n" .
-                    $jobs->map(fn ($job) => " - {$job['argumentClass']}")->implode("\n"),
-                );
-            }
+            // if ($jobs->isNotEmpty()) {
+            //     dump(
+            //         "Jobs dispatched by $sanitizedClassName:\n" .
+            //         $jobs->map(fn (ResolvedCall $job) => " - {$job->argumentClass}")->implode("\n"),
+            //     );
+            // }
+            //
+            // if ($events->isNotEmpty()) {
+            //     dump(
+            //         "Events dispatched by $sanitizedClassName:\n" .
+            //         $events->map(fn (ResolvedCall $event) => " - {$event->argumentClass}")->implode("\n"),
+            //     );
+            // }
 
-            if ($events->isNotEmpty()) {
-                dump(
-                    "Events dispatched by $sanitizedClassName:\n" .
-                    $events->map(fn ($event) => " - {$event['argumentClass']}")->implode("\n"),
+            $events->each(function (ResolvedCall $resolvedCall) use ($sanitizedClassName) {
+                $this->connectNodes(
+                    from: new Event($sanitizedClassName),
+                    to: new Listener($resolvedCall->argumentClass),
                 );
-            }
+
+                // dump('Worming to event ' . $resolvedCall->argumentClass);
+                $this->analyseClass($resolvedCall->argumentClass);
+            });
+
+            $jobs->each(function (ResolvedCall $resolvedCall) use ($sanitizedClassName) {
+                $this->connectNodes(
+                    from: new Event($sanitizedClassName),
+                    to: new Job($resolvedCall->argumentClass),
+                );
+
+                // dump('Worming to job ' . $resolvedCall->argumentClass);
+                $this->analyseClass($resolvedCall->argumentClass);
+            });
         } catch (Throwable $e) {
-            dump("Failed to analyse $sanitizedClassName");
-            throw $e;
+            // dump("Failed to analyse $sanitizedClassName");
+            // throw $e;
         }
     }
 
@@ -182,11 +228,47 @@ class EventVisualizer
         return collect($jobs);
     }
 
+    private function connectNodes(VisualizerNode $from, VisualizerNode $to): void
+    {
+        $fromNode = new Node(
+            identifier: $from->getIdentifier(),
+            title: $from->getName(),
+            shape: new NodeShape(NodeShape::ROUND_EDGES),
+            style: $from->getStyle(),
+        );
+        $toNode = new Node(
+            identifier: $to->getIdentifier(),
+            title: $to->getName(),
+            shape: new NodeShape(NodeShape::ROUND_EDGES),
+            style: $to->getStyle(),
+        );
+        $link = new Link(
+            from: $fromNode,
+            to: $toNode,
+            text: null,
+            linkStyle: new LinkStyle(LinkStyle::ARROW_HEAD),
+        );
+
+        $this->graph->addNode($fromNode)
+            ->addNode($toNode)
+            ->addLink($link);
+    }
+
     private function getCodeFromClass(string $className): string
     {
         $reflection = new ReflectionClass($className);
         $source = file($reflection->getFileName());
 
         return implode('', $source);
+    }
+
+    private function sanitizeClassName(string $className): string
+    {
+        return Str::before($className, '@');
+    }
+
+    private function isIgnored(string $className): bool
+    {
+        return Str::contains($this->sanitizeClassName($className), $this->classesToIgnore);
     }
 }
