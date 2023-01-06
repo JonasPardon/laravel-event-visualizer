@@ -92,7 +92,12 @@ class CodeParser
                 return $this->areClassesSame($propertyClass, $subjectClass);
             }
 
-            throw new Exception('Not implemented');
+            if ($node->var instanceof StaticCall && $node->var->name) {
+                return false;
+                throw new Exception('Static calls within method calls are not supported yet. If this is a Bus::chain, support is coming.');
+            }
+
+            throw new Exception('Not supported yet. Please open an issue here: https://github.com/JonasPardon/laravel-event-visualizer/issues/new');
         });
 
         return collect($calls)->map(function (MethodCall $node) use ($subjectClass) {
