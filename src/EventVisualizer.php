@@ -85,11 +85,6 @@ class EventVisualizer
             // }
 
             foreach ($listeners as $listener) {
-                // todo: this currently only ignores listeners. Should also ignore events and jobs.
-                if (Str::contains($listener, $this->classesToIgnore)) {
-                    continue;
-                }
-
                 $this->analyseClass($listener);
 
                 // $this->connectNodes(new Event($event), new Listener($listener));
@@ -105,9 +100,9 @@ class EventVisualizer
             return;
         }
 
-        if (Str::contains($sanitizedClassName, 'Totango')) {
-            return;
-        }
+        // if (Str::contains($sanitizedClassName, 'Totango')) {
+        //     return;
+        // }
 
         $code = $this->getCodeFromClass($sanitizedClassName);
         $parser = new CodeParser($code);
@@ -119,51 +114,60 @@ class EventVisualizer
             if ($jobs->isNotEmpty()) {
                 dump(
                     "Jobs dispatched by $sanitizedClassName:\n" .
-                    $jobs->map(fn ($job) => " - {$job['className']}")->implode("\n"),
+                    $jobs->map(fn ($job) => " - {$job['argumentClass']}")->implode("\n"),
                 );
             }
 
             if ($events->isNotEmpty()) {
                 dump(
                     "Events dispatched by $sanitizedClassName:\n" .
-                    $events->map(fn ($event) => " - {$event['className']}")->implode("\n"),
+                    $events->map(fn ($event) => " - {$event['argumentClass']}")->implode("\n"),
                 );
             }
         } catch (Throwable $e) {
             dump("Failed to analyse $sanitizedClassName");
             throw $e;
         }
-
-        // dump("$className\n\n$code");
     }
 
     private function getDispatchedEvents(CodeParser $codeParser): Collection
     {
         $classes = [
-            '\Event',
-            '\Illuminate\Support\Facades\Event',
+            'Event',
+            'Illuminate\Support\Facades\Event',
+            'Illuminate\Contracts\Events\Dispatcher',
         ];
         $methods = [
             'dispatch',
         ];
 
-        $events = new Collection();
+        $events = [];
 
         foreach ($classes as $class) {
             foreach ($methods as $method) {
-                $events->merge(collect($codeParser->getStaticCalls($class, $method)));
-                $events->merge(collect($codeParser->getMethodCalls($class, $method)));
+                // dump("Looking for $class::$method");
+
+                $foundStaticCalls = $codeParser->getStaticCalls($class, $method);
+                if (count($foundStaticCalls) !== 0) {
+                    $events = array_merge($events, $foundStaticCalls);
+                }
+
+                $foundMethodCalls = $codeParser->getMethodCalls($class, $method);
+                if (count($foundMethodCalls) !== 0) {
+                    $events = array_merge($events, $foundMethodCalls);
+                }
             }
         }
 
-        return $events;
+        return collect($events);
     }
 
     private function getDispatchedJobs(CodeParser $codeParser): Collection
     {
         $classes = [
-            '\Bus',
-            '\Illuminate\Support\Facades\Bus',
+            'Bus',
+            'Illuminate\Support\Facades\Bus',
+            'Illuminate\Contracts\Bus\Dispatcher',
         ];
         $methods = [
             'dispatch',
@@ -174,16 +178,25 @@ class EventVisualizer
             'dispatchAfterCommit',
         ];
 
-        $jobs = new Collection();
+        $jobs = [];
 
         foreach ($classes as $class) {
             foreach ($methods as $method) {
-                $jobs->merge(collect($codeParser->getStaticCalls($class, $method)));
-                $jobs->merge(collect($codeParser->getMethodCalls($class, $method)));
+                // dump("Looking for $class::$method");
+
+                $foundStaticCalls = $codeParser->getStaticCalls($class, $method);
+                if (count($foundStaticCalls) !== 0) {
+                    $jobs = array_merge($jobs, $foundStaticCalls);
+                }
+
+                $foundMethodCalls = $codeParser->getMethodCalls($class, $method);
+                if (count($foundMethodCalls) !== 0) {
+                    $jobs = array_merge($jobs, $foundMethodCalls);
+                }
             }
         }
 
-        return $jobs;
+        return collect($jobs);
     }
 
     private function getCodeFromClass(string $className): string
