@@ -17,9 +17,7 @@ final class MethodCallsParsingTest extends TestCase
         string $methodName,
         array $expectedMethodCalls,
     ): void {
-        $this->markTestIncomplete('Not completed');
-        dump("Looking for {$subjectClass}->{$methodName}", $code);
-
+        // dump("Looking for {$subjectClass}->{$methodName}", $code);
         $codeParser = new CodeParser($code);
 
         $methodCalls = $codeParser->getMethodCalls(
@@ -46,7 +44,7 @@ final class MethodCallsParsingTest extends TestCase
                 
                     public function classMethod(): void
                     {
-                        $dispatcher->dispatch();
+                        $dispatcher->dispatch(new \App\Events\SomeEvent());
                     }
                 }
                 CODE,
@@ -56,6 +54,7 @@ final class MethodCallsParsingTest extends TestCase
                     [
                         'class' => 'Illuminate\Contracts\Events\Dispatcher',
                         'method' => 'dispatch',
+                        'argumentClass' => 'App\Events\SomeEvent',
                     ],
                 ],
             ],
@@ -73,7 +72,7 @@ final class MethodCallsParsingTest extends TestCase
                 
                     public function classMethod(): void
                     {
-                        $dispatcher->dispatch();
+                        $dispatcher->dispatch(new \App\Events\SomeEvent());
                     }
                 }
                 CODE,
@@ -83,6 +82,7 @@ final class MethodCallsParsingTest extends TestCase
                     [
                         'class' => 'Illuminate\Contracts\Events\Dispatcher',
                         'method' => 'dispatch',
+                        'argumentClass' => 'App\Events\SomeEvent',
                     ],
                 ],
             ],

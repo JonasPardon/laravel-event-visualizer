@@ -54,7 +54,7 @@ class CodeParser
             return $this->areClassesSame($node->class->toString(), $subjectClass);
         });
 
-        return collect($calls)->map(function (StaticCall $node) use ($subjectClass, $methodName) {
+        return collect($calls)->map(function (StaticCall $node) use ($subjectClass) {
             return [
                 'class' => $subjectClass,
                 'method' => $node->name->toString(),
@@ -82,13 +82,12 @@ class CodeParser
             }
 
             // 2. Check if variable it's called on is an instance of the subject class
-            dd($node->var);
-            dd($this->resolveClassFromVariable($node->var, $this->nodes));
-            return $this->resolveClassFromVariable($node->var, $this->nodes) === $subjectClass;
-            // return $this->isVariableInstanceOf($code, $node->var->name, $subjectClass);
+            $variableClass = $this->resolveClassFromVariable($node->var);
+
+            return $this->areClassesSame($variableClass, $subjectClass);
         });
 
-        return collect($calls)->map(function (StaticCall $node) use ($subjectClass, $methodName) {
+        return collect($calls)->map(function (MethodCall $node) use ($subjectClass) {
             return [
                 'class' => $subjectClass,
                 'method' => $node->name->toString(),
@@ -170,12 +169,8 @@ class CodeParser
     public function getFullyQualifiedClassName(string $className): string
     {
         /** @var Use_[] $importNodes */
-        $importNodes = $this->nodeFinder->find($this->nodes, function (Node $node) use ($className) {
-            if (!$node instanceof Use_) {
-                return false;
-            }
-
-            return $node->type === Use_::TYPE_NORMAL; // We're only looking for class imports
+        $importNodes = $this->nodeFinder->find($this->nodes, function (Node $node) {
+            return $node instanceof Use_ && $node->type === Use_::TYPE_NORMAL; // We're only looking for class imports
         });
 
         foreach ($importNodes as $importNode) {
