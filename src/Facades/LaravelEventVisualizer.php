@@ -5,7 +5,7 @@ namespace JonasPardon\LaravelEventVisualizer\Facades;
 use Illuminate\Support\Facades\Facade;
 
 /**
- * @see \JonasPardon\LaravelEventVisualizer\EventVisualizer
+ * @see \JonasPardon\LaravelEventVisualizer\EventVisualizerLegacy
  */
 class LaravelEventVisualizer extends Facade
 {
