@@ -6,6 +6,7 @@ use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\New_;
+use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\Variable;
@@ -72,19 +73,26 @@ class CodeParser
                 return false;
             }
 
-            // 1. Check if call matches what we're looking for ('like 'dispatch')
+            // Check if call matches what we're looking for ('like 'dispatch')
             if ($node->name->toString() !== $methodName) {
                 return false;
             }
 
-            if (!$node->var instanceof Variable) {
-                throw new Exception('Not implemented');
+            // This happens when you inject the dispatcher and do '$dispatcher->dispatch()'
+            if ($node->var instanceof Variable) {
+                $variableClass = $this->resolveClassFromVariable($node->var);
+
+                return $this->areClassesSame($variableClass, $subjectClass);
             }
 
-            // 2. Check if variable it's called on is an instance of the subject class
-            $variableClass = $this->resolveClassFromVariable($node->var);
+            // This happens when you inject the dispatcher and do '$this->dispatcher->dispatch()'
+            if ($node->var instanceof PropertyFetch) {
+                $propertyClass = $this->resolveClassFromProperty($node->var);
 
-            return $this->areClassesSame($variableClass, $subjectClass);
+                return $this->areClassesSame($propertyClass, $subjectClass);
+            }
+
+            throw new Exception('Not implemented');
         });
 
         return collect($calls)->map(function (MethodCall $node) use ($subjectClass) {
@@ -162,6 +170,25 @@ class CodeParser
 
             return $this->getFullyQualifiedClassName($argument->value->class->toString());
         }
+
+        return null;
+    }
+
+    public function resolveClassFromProperty(PropertyFetch $property): ?string
+    {
+        // Constructor injection
+        /** @var ClassMethod $constructorNode */
+        $constructorNode = $this->nodeFinder->findFirst($this->nodes, function (Node $node) {
+            return $node instanceof ClassMethod && $node->name->toString() === '__construct';
+        });
+
+        foreach ($constructorNode->params as $param) {
+            if ($param->var instanceof Variable && $param->var->name === $property->name->toString()) {
+                return $this->getFullyQualifiedClassName($param->type->toString());
+            }
+        }
+
+        // todo: other types of injection
 
         return null;
     }
