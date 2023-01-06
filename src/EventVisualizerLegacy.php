@@ -19,6 +19,7 @@ use JonasPardon\Mermaid\Models\Node;
 use JonasPardon\Mermaid\VO\LinkStyle;
 use JonasPardon\Mermaid\VO\NodeShape;
 use ReflectionClass;
+use Throwable;
 
 class EventVisualizerLegacy
 {
@@ -151,7 +152,7 @@ class EventVisualizerLegacy
             dump($this->getDispatchedEvents($parser));
             dump($this->getDispatchedJobs($parser));
             // dd($parentNode, $className, $code);
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             dump('Fail: ' . $className);
         }
 

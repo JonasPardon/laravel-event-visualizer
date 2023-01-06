@@ -141,7 +141,7 @@ final class MethodCallsParsingTest extends TestCase
                         'argumentClass' => 'App\Jobs\Job2',
                     ],
                 ],
-            ]
+            ],
         ];
     }
 }

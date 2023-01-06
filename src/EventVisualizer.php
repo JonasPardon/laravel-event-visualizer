@@ -10,6 +10,7 @@ use JonasPardon\LaravelEventVisualizer\Models\Listener;
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
 use JonasPardon\Mermaid\Models\Graph;
 use ReflectionClass;
+use Throwable;
 
 class EventVisualizer
 {
@@ -118,17 +119,17 @@ class EventVisualizer
             if ($jobs->isNotEmpty()) {
                 dump(
                     "Jobs dispatched by $sanitizedClassName:\n" .
-                    $jobs->map(fn($job) => " - {$job['className']}")->implode("\n"),
+                    $jobs->map(fn ($job) => " - {$job['className']}")->implode("\n"),
                 );
             }
 
             if ($events->isNotEmpty()) {
                 dump(
                     "Events dispatched by $sanitizedClassName:\n" .
-                    $events->map(fn($event) => " - {$event['className']}")->implode("\n"),
+                    $events->map(fn ($event) => " - {$event['className']}")->implode("\n"),
                 );
             }
-        } catch (\Throwable $e) {
+        } catch (Throwable $e) {
             dump("Failed to analyse $sanitizedClassName");
             throw $e;
         }
