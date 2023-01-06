@@ -3,6 +3,7 @@
 namespace JonasPardon\LaravelEventVisualizer\Tests\Unit\CodeParser;
 
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
+use JonasPardon\LaravelEventVisualizer\Services\CodeParser\ValueObjects\ResolvedCall;
 use JonasPardon\LaravelEventVisualizer\Tests\TestCase;
 
 final class MethodCallsParsingTest extends TestCase
@@ -51,11 +52,11 @@ final class MethodCallsParsingTest extends TestCase
                 'Illuminate\Contracts\Events\Dispatcher',
                 'dispatch',
                 [
-                    [
-                        'class' => 'Illuminate\Contracts\Events\Dispatcher',
-                        'method' => 'dispatch',
-                        'argumentClass' => 'App\Events\SomeEvent',
-                    ],
+                    new ResolvedCall(
+                        class: 'Illuminate\Contracts\Events\Dispatcher',
+                        method: 'dispatch',
+                        argumentClass: 'App\Events\SomeEvent',
+                    ),
                 ],
             ],
             'dispatch call on Event contract with import' => [
@@ -79,14 +80,14 @@ final class MethodCallsParsingTest extends TestCase
                 'Illuminate\Contracts\Events\Dispatcher',
                 'dispatch',
                 [
-                    [
-                        'class' => 'Illuminate\Contracts\Events\Dispatcher',
-                        'method' => 'dispatch',
-                        'argumentClass' => 'App\Events\SomeEvent',
-                    ],
+                    new ResolvedCall(
+                        class: 'Illuminate\Contracts\Events\Dispatcher',
+                        method: 'dispatch',
+                        argumentClass: 'App\Events\SomeEvent',
+                    ),
                 ],
             ],
-            'Subscriber with injected job and event dispatchers' => [
+            'subscriber with injected job and event dispatchers' => [
                 <<<'CODE'
                 <?php declare(strict_types=1);
                 
@@ -130,16 +131,16 @@ final class MethodCallsParsingTest extends TestCase
                 'Illuminate\Contracts\Bus\Dispatcher',
                 'dispatchNow',
                 [
-                    [
-                        'class' => 'Illuminate\Contracts\Bus\Dispatcher',
-                        'method' => 'dispatchNow',
-                        'argumentClass' => 'App\Jobs\Job1',
-                    ],
-                    [
-                        'class' => 'Illuminate\Contracts\Bus\Dispatcher',
-                        'method' => 'dispatchNow',
-                        'argumentClass' => 'App\Jobs\Job2',
-                    ],
+                    new ResolvedCall(
+                        class: 'Illuminate\Contracts\Bus\Dispatcher',
+                        method: 'dispatchNow',
+                        argumentClass: 'App\Jobs\Job1',
+                    ),
+                    new ResolvedCall(
+                        class: 'Illuminate\Contracts\Bus\Dispatcher',
+                        method: 'dispatchNow',
+                        argumentClass: 'App\Jobs\Job2',
+                    ),
                 ],
             ],
         ];

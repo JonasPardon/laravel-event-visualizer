@@ -2,6 +2,7 @@
 
 namespace JonasPardon\LaravelEventVisualizer\Services;
 
+use JonasPardon\LaravelEventVisualizer\Services\CodeParser\ValueObjects\ResolvedCall;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Assign;
@@ -56,11 +57,11 @@ class CodeParser
         });
 
         return collect($calls)->map(function (StaticCall $node) use ($subjectClass) {
-            return [
-                'class' => $subjectClass,
-                'method' => $node->name->toString(),
-                'argumentClass' => $this->resolveClassFromArgument($node->args[0]),
-            ];
+            return new ResolvedCall(
+                class: $subjectClass,
+                method: $node->name->toString(),
+                argumentClass: $this->resolveClassFromArgument($node->args[0]),
+            );
         })->toArray();
     }
 
@@ -101,11 +102,11 @@ class CodeParser
         });
 
         return collect($calls)->map(function (MethodCall $node) use ($subjectClass) {
-            return [
-                'class' => $subjectClass,
-                'method' => $node->name->toString(),
-                'argumentClass' => $this->resolveClassFromArgument($node->args[0]),
-            ];
+            return new ResolvedCall(
+                class: $subjectClass,
+                method: $node->name->toString(),
+                argumentClass: $this->resolveClassFromArgument($node->args[0]),
+            );
         })->toArray();
     }
 

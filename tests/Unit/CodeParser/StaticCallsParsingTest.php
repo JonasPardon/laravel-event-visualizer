@@ -3,6 +3,7 @@
 namespace JonasPardon\LaravelEventVisualizer\Tests\Unit\CodeParser;
 
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
+use JonasPardon\LaravelEventVisualizer\Services\CodeParser\ValueObjects\ResolvedCall;
 use JonasPardon\LaravelEventVisualizer\Tests\TestCase;
 
 final class StaticCallsParsingTest extends TestCase
@@ -49,11 +50,11 @@ final class StaticCallsParsingTest extends TestCase
                 'Event',
                 'dispatch',
                 [
-                    [
-                        'class' => 'Event',
-                        'method' => 'dispatch',
-                        'argumentClass' => 'App\Events\SomeEvent',
-                    ],
+                    new ResolvedCall(
+                        class: 'Event',
+                        method: 'dispatch',
+                        argumentClass: 'App\Events\SomeEvent',
+                    ),
                 ],
             ],
             'static dispatch call on Event facade with import' => [
@@ -77,11 +78,11 @@ final class StaticCallsParsingTest extends TestCase
                 'Event',
                 'dispatch',
                 [
-                    [
-                        'class' => 'Event',
-                        'method' => 'dispatch',
-                        'argumentClass' => 'App\Events\SomeEvent',
-                    ],
+                    new ResolvedCall(
+                        class: 'Event',
+                        method: 'dispatch',
+                        argumentClass: 'App\Events\SomeEvent',
+                    ),
                 ],
             ],
             'static dispatch call on Event facade FQN without import' => [
@@ -103,11 +104,11 @@ final class StaticCallsParsingTest extends TestCase
                 'Illuminate\Support\Facades\Event',
                 'dispatch',
                 [
-                    [
-                        'class' => 'Illuminate\Support\Facades\Event',
-                        'method' => 'dispatch',
-                        'argumentClass' => 'App\Events\SomeEvent',
-                    ],
+                    new ResolvedCall(
+                        class: 'Illuminate\Support\Facades\Event',
+                        method: 'dispatch',
+                        argumentClass: 'App\Events\SomeEvent',
+                    ),
                 ],
             ],
             'static dispatch call on Event facade FQN with import' => [
@@ -131,11 +132,11 @@ final class StaticCallsParsingTest extends TestCase
                 'Illuminate\Support\Facades\Event',
                 'dispatch',
                 [
-                    [
-                        'class' => 'Illuminate\Support\Facades\Event',
-                        'method' => 'dispatch',
-                        'argumentClass' => 'App\Events\SomeEvent',
-                    ],
+                    new ResolvedCall(
+                        class: 'Illuminate\Support\Facades\Event',
+                        method: 'dispatch',
+                        argumentClass: 'App\Events\SomeEvent',
+                    ),
                 ],
             ],
             'static dispatch call on Event facade FQN with import and alias' => [
@@ -159,11 +160,11 @@ final class StaticCallsParsingTest extends TestCase
                 'Illuminate\Support\Facades\Event',
                 'dispatch',
                 [
-                    [
-                        'class' => 'Illuminate\Support\Facades\Event',
-                        'method' => 'dispatch',
-                        'argumentClass' => 'App\Events\SomeEvent',
-                    ],
+                    new ResolvedCall(
+                        class: 'Illuminate\Support\Facades\Event',
+                        method: 'dispatch',
+                        argumentClass: 'App\Events\SomeEvent',
+                    ),
                 ],
             ],
             'no calls but import as alias' => [
@@ -257,16 +258,16 @@ final class StaticCallsParsingTest extends TestCase
                 'Illuminate\Support\Facades\Event',
                 'dispatch',
                 [
-                    [
-                        'class' => 'Illuminate\Support\Facades\Event',
-                        'method' => 'dispatch',
-                        'argumentClass' => 'App\Events\SomeEvent',
-                    ],
-                    [
-                        'class' => 'Illuminate\Support\Facades\Event',
-                        'method' => 'dispatch',
-                        'argumentClass' => 'App\Events\SomeOtherEvent',
-                    ],
+                    new ResolvedCall(
+                        class: 'Illuminate\Support\Facades\Event',
+                        method: 'dispatch',
+                        argumentClass: 'App\Events\SomeEvent',
+                    ),
+                    new ResolvedCall(
+                        class: 'Illuminate\Support\Facades\Event',
+                        method: 'dispatch',
+                        argumentClass: 'App\Events\SomeOtherEvent',
+                    ),
                 ],
             ],
         ];

@@ -67,23 +67,6 @@ class EventVisualizer
                 continue;
             }
 
-            // if (str_contains($event, 'DocumentVersionWasCreated')) {
-            //     foreach ($listeners as $listener) {
-            //         $code = $this->getCodeFromClass($listener);
-            //         $parser = new CodeParser($code);
-            //
-            //         dump(
-            //             $listener,
-            //             $code,
-            //             $parser->getStaticCalls('Event', 'dispatch'),
-            //         );
-            //     }
-            //
-            //     die();
-            // } else {
-            //     continue;
-            // }
-
             foreach ($listeners as $listener) {
                 $this->analyseClass($listener);
 
