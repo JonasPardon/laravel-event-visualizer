@@ -2,7 +2,7 @@
 
 namespace JonasPardon\LaravelEventVisualizer\Tests\Unit\CodeParser;
 
-use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
+use JonasPardon\LaravelEventVisualizer\Services\CodeParser\CodeParser;
 use JonasPardon\LaravelEventVisualizer\Tests\TestCase;
 
 final class FullyQualifiedClassNameResolverTest extends TestCase

@@ -9,7 +9,7 @@ use JonasPardon\LaravelEventVisualizer\Models\Event;
 use JonasPardon\LaravelEventVisualizer\Models\Job;
 use JonasPardon\LaravelEventVisualizer\Models\Listener;
 use JonasPardon\LaravelEventVisualizer\Models\VisualizerNode;
-use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
+use JonasPardon\LaravelEventVisualizer\Services\CodeParser\CodeParser;
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser\ValueObjects\ResolvedCall;
 use JonasPardon\Mermaid\Models\Graph;
 use JonasPardon\Mermaid\Models\Link;

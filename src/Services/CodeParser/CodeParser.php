@@ -1,15 +1,16 @@
 <?php declare(strict_types=1);
 
-namespace JonasPardon\LaravelEventVisualizer\Services;
+namespace JonasPardon\LaravelEventVisualizer\Services\CodeParser;
 
+use Exception;
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser\ValueObjects\ResolvedCall;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Assign;
+use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticCall;
-use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\ClassMethod;
@@ -18,7 +19,6 @@ use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
-use Exception;
 
 class CodeParser
 {
