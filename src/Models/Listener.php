@@ -6,7 +6,7 @@ namespace JonasPardon\LaravelEventVisualizer\Models;
 
 use JonasPardon\Mermaid\Models\Style;
 
-final class Listener extends VisualizerNode
+class Listener extends VisualizerNode
 {
     public function getType(): string
     {
