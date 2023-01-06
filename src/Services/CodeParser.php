@@ -47,12 +47,12 @@ class CodeParser
                 return false;
             }
 
-            // 1. Check if call matches what we're looking for ('like 'dispatch')
+            // Check if call matches what we're looking for ('like 'dispatch')
             if ($node->name->toString() !== $methodName) {
                 return false;
             }
 
-            // 2. Check if variable it's called on is an instance of the subject class
+            // Check if variable it's called on is an instance of the subject class
             return $this->areClassesSame($node->class->toString(), $subjectClass);
         });
 
@@ -93,8 +93,7 @@ class CodeParser
                 return $this->areClassesSame($propertyClass, $subjectClass);
             }
 
-            if ($node->var instanceof StaticCall && $node->var->name) {
-                return false;
+            if ($node->var instanceof StaticCall) {
                 throw new Exception('Static calls within method calls are not supported yet. If this is a Bus::chain, support is coming.');
             }
 
@@ -159,7 +158,6 @@ class CodeParser
             // todo: handle other types of assignments
         }
 
-        // If we've gotten here, we haven't found a class name.
         return null;
     }
 

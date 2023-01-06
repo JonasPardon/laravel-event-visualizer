@@ -118,27 +118,12 @@ class EventVisualizer
             $jobs = $this->getDispatchedJobs($parser);
             $events = $this->getDispatchedEvents($parser);
 
-            // if ($jobs->isNotEmpty()) {
-            //     dump(
-            //         "Jobs dispatched by $sanitizedClassName:\n" .
-            //         $jobs->map(fn (ResolvedCall $job) => " - {$job->argumentClass}")->implode("\n"),
-            //     );
-            // }
-            //
-            // if ($events->isNotEmpty()) {
-            //     dump(
-            //         "Events dispatched by $sanitizedClassName:\n" .
-            //         $events->map(fn (ResolvedCall $event) => " - {$event->argumentClass}")->implode("\n"),
-            //     );
-            // }
-
             $events->each(function (ResolvedCall $resolvedCall) use ($sanitizedClassName) {
                 $this->connectNodes(
                     from: new Event($sanitizedClassName),
                     to: new Listener($resolvedCall->argumentClass),
                 );
 
-                // dump('Worming to event ' . $resolvedCall->argumentClass);
                 $this->analyseClass($resolvedCall->argumentClass);
             });
 
@@ -148,7 +133,6 @@ class EventVisualizer
                     to: new Job($resolvedCall->argumentClass),
                 );
 
-                // dump('Worming to job ' . $resolvedCall->argumentClass);
                 $this->analyseClass($resolvedCall->argumentClass);
             });
         } catch (Throwable $e) {
@@ -172,8 +156,6 @@ class EventVisualizer
 
         foreach ($classes as $class) {
             foreach ($methods as $method) {
-                // dump("Looking for $class::$method");
-
                 $foundStaticCalls = $codeParser->getStaticCalls($class, $method);
                 if (count($foundStaticCalls) !== 0) {
                     $events = array_merge($events, $foundStaticCalls);
@@ -209,8 +191,6 @@ class EventVisualizer
 
         foreach ($classes as $class) {
             foreach ($methods as $method) {
-                // dump("Looking for $class::$method");
-
                 $foundStaticCalls = $codeParser->getStaticCalls($class, $method);
                 if (count($foundStaticCalls) !== 0) {
                     $jobs = array_merge($jobs, $foundStaticCalls);
