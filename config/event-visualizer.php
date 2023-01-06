@@ -20,9 +20,4 @@ return [
     'classes_to_ignore' => [
         // Illuminate\Auth\Events\Login::class,
     ],
-
-    /**
-     * WIP! Will not work as expected.
-     */
-    'auto_discover_jobs_and_events' => false,
 ];

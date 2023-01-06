@@ -23,7 +23,6 @@ class EventVisualizer
 {
     private readonly bool $showLaravelEvents;
     private readonly array $classesToIgnore;
-    private readonly bool $autoDiscoverJobsAndEvents;
     private readonly Graph $graph;
     private readonly Collection $analysedClasses;
 
@@ -31,7 +30,6 @@ class EventVisualizer
     {
         $this->showLaravelEvents = config('event-visualizer.show_laravel_events', false);
         $this->classesToIgnore = config('event-visualizer.classes_to_ignore', []);
-        $this->autoDiscoverJobsAndEvents = config('event-visualizer.auto_discover_jobs_and_events', false);
         $this->graph = new Graph();
 
         $this->analysedClasses = new Collection();
