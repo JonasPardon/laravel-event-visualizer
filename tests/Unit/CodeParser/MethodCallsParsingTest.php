@@ -143,6 +143,84 @@ final class MethodCallsParsingTest extends TestCase
                     ),
                 ],
             ],
+            'listener with injected event dispatcher' => [
+                <<<'CODE'
+                <?php declare(strict_types=1);
+                
+                namespace App\Listeners;
+                
+                use App\Events\SomeEvent;
+                use App\Models\SomeModel;
+                use App\Domains\Documents\Esigning\Models\RelatedModel;
+                use App\Factories\SomeFactory;
+                use App\Factories\SomeOtherFactory;
+                use App\Events\EventThatIsDispatched;
+                use App\Mails\SomeMail;
+                use Illuminate\Contracts\Events\Dispatcher;
+                use Illuminate\Support\Facades\Log;
+                use Illuminate\Support\Facades\Mail;
+                use Psr\Log\LoggerInterface;
+                
+                final class SomeListener
+                {
+                    private LoggerInterface $logger;
+                
+                    public function __construct(
+                        private SomeFactory $someFactory,
+                        private SomeOtherFactory $someOtherFactory,
+                        private Dispatcher $eventDispatcher,
+                    ) {
+                        $this->logger = Log::channel('channel');
+                    }
+                
+                    public function handle(SomeEvent $event)
+                    {
+                        $var = $event->getVar();
+                
+                        $this->logger->info('Log some information', [
+                            'varId' => $var->id,
+                            'varOtherId' => $var->other_id,
+                        ]);
+                
+                        $var->doSomething();
+                
+                        $var->loadMissing('relation1.relation2', 'relation3.relation4');
+                
+                        $someClient = $this->someFactory->forVar($var);
+                
+                        $var->relatedModels->each(function (RelatedModel $relatedModel) use ($someClient) {
+                            $downloadedThing = $someClient->downloadThing($relatedModel);
+                            $payload = $relatedModel->relation()->withTrashed()->first();
+                
+                            $filePath = $this->someOtherFactory
+                                ->forCompany($var->company)
+                                ->uploadThing(
+                                    $payload,
+                                    $downloadedThing,
+                                );
+                
+                            $relatedModel->doSomethingWithPath($filePath);
+                
+                            $this->eventDispatcher->dispatch(new EventThatIsDispatched($payload));
+                        });
+                
+                        $var->otherRelatedModel->each(function (SomeModel $someModel) {
+                            Mail::to($someModel->email)
+                                ->queue(new SomeMail($someModel));
+                        });
+                    }
+                }
+                CODE,
+                'Illuminate\Contracts\Events\Dispatcher',
+                'dispatch',
+                [
+                    new ResolvedCall(
+                        class: 'Illuminate\Contracts\Events\Dispatcher',
+                        method: 'dispatch',
+                        argumentClass: 'App\Events\EventThatIsDispatched',
+                    ),
+                ],
+            ],
         ];
     }
 }
