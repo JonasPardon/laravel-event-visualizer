@@ -6,7 +6,7 @@ namespace JonasPardon\LaravelEventVisualizer\Http\Controllers;
 
 use Illuminate\Routing\Controller;
 use Illuminate\View\View;
-use JonasPardon\LaravelEventVisualizer\EventVisualizerLegacy;
+use JonasPardon\LaravelEventVisualizer\EventVisualizer;
 use JonasPardon\Mermaid\Models\Graph;
 use JonasPardon\Mermaid\Models\Link;
 use JonasPardon\Mermaid\Models\Node;
@@ -17,9 +17,8 @@ use JonasPardon\Mermaid\VO\NodeShape;
 
 final class LaravelEventVisualizerController extends Controller
 {
-    public function __construct(
-        private EventVisualizerLegacy $visualizer,
-    ) {
+    public function __construct(private readonly EventVisualizer $visualizer)
+    {
     }
 
     public function visualizeEvents(): View
