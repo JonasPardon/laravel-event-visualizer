@@ -36,41 +36,34 @@ php artisan vendor:publish --tag="event-visualizer-views"
 
 Visit `your-app.test/event-visualizer` on a non-production environment.
 
+## How does it work?
+
+The starting point is your registered app events and their listeners/subscribers as defined in your `EventServiceProvider`.
+
+For each of those listeners/subscribers, the package will try to find the dispatched events and jobs by parsing the code and traversing through the abstract syntax tree. 
+For every event/job found, the same AST traversal will be done recursively until it reaches the end.
+
 ## Supported
 
 Auto discovery of events and jobs might still fail. If you encounter errors, please open an issue.
 
-Refer to the table below for support.
+| Syntax                                                           | Supported? |
+|------------------------------------------------------------------|------------|
+| `\Event` facade static call                                      | ✅          |
+| `\Bus` facade static call                                        | ✅          |
+| `\Illuminate\Support\Facades\Event` facade static call           | ✅          |
+| `\Illuminate\Support\Facades\Bus` facade static call             | ✅          |
+| `\Illuminate\Contracts\Events\Dispatcher` injected variable call | ✅          |
+| `\Illuminate\Contracts\Bus\Dispatcher` injected variable call    | ✅          |
+| Bus chains                                                       | ❌ (WIP)    |
+| `event(...)` helper                                              | ❌ (WIP)    |
+| `dispatch(...)` helper                                           | ❌ (WIP)    |
 
-| Syntax                        | Examples                                           | Supported |
-|-------------------------------|----------------------------------------------------|-----------|
-| Static call with inline class | `Bus::dispatch(new Job())`                         | yes       |
-|                               | `Bus::dispatchNow(new Job())`                      | yes       |
-|                               | `Bus::dispatchSync(new Job())`                     | yes       |
-|                               | `Bus::dispatchToQueue(new Job())`                  | yes       |
-|                               | `Bus::dispatchAfterResponse(new Job())`            | yes       |
-|                               | `Event::dispatch(new Event())`                     | yes       |
-|                               | `Bus::chain([new Event()])`                        | no (WIP)  |
-| Method call with inline class | `$jobDispatcher->dispatch(new Job())`              | yes       |
-|                               | `$jobDispatcher->dispatchNow(new Job())`           | yes       |
-|                               | `$jobDispatcher->dispatchSync(new Job())`          | yes       |
-|                               | `$jobDispatcher->dispatchToQueue(new Job())`       | yes       |
-|                               | `$jobDispatcher->dispatchAfterResponse(new Job())` | yes       |
-|                               | `$eventDispatcher->dispatch(new Event())`          | yes       |
-| Static call with variable     | `Bus::dispatch($job)`                              | yes       |
-|                               | `Bus::dispatchNow($job)`                           | yes       |
-|                               | `Bus::dispatchSync($job)`                          | yes       |
-|                               | `Bus::dispatchToQueue($job)`                       | yes       |
-|                               | `Bus::dispatchAfterResponse($job)`                 | yes       |
-|                               | `Event::dispatch($event)`                          | yes       |
-| Method call with variable     | `$jobDispatcher->dispatch($job)`                   | yes       |
-|                               | `$jobDispatcher->dispatchNow($job)`                | yes       |
-|                               | `$jobDispatcher->dispatchSync($job)`               | yes       |
-|                               | `$jobDispatcher->dispatchToQueue($job)`            | yes       |
-|                               | `$jobDispatcher->dispatchAfterResponse($job)`      | yes       |
-|                               | `$eventDispatcher->dispatch($event)`               | yes       |
-| `event(...)` helper           | `event($event)`                                    | no (WIP)  |
-| `dispatch(...)` helper        | `dispatch($job)`                                   | no (WIP)  |
+For dependency injection, both constructor and method injection are supported.
+
+Inline instantiation of classes is supported.
+
+Passing variables (`Event::dispatch($event)` as opposed to `Event::dispatch(new EventName())`) is supported, but there might be some edge cases where it fails. If you encounter these, please open an issue and provide a code sample.
 
 ## Testing
 
