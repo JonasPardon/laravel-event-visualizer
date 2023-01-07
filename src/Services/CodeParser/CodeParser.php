@@ -7,6 +7,7 @@ use JonasPardon\LaravelEventVisualizer\Services\CodeParser\ValueObjects\Resolved
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Assign;
+use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\PropertyFetch;
@@ -14,6 +15,7 @@ use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\NodeFinder;
@@ -112,29 +114,20 @@ class CodeParser
 
     public function getFunctionCalls(string $functionName): array
     {
-        dd($this->nodes);
         $calls = $this->nodeFinder->find($this->nodes, function (Node $node) use ($functionName) {
-            dump($node);
-            // if (!$node instanceof StaticCall) {
-            //     return false;
-            // }
-            //
-            // // Check if call matches what we're looking for ('like 'dispatch')
-            // if ($node->name->toString() !== $methodName) {
-            //     return false;
-            // }
-            //
-            // // Check if variable it's called on is an instance of the subject class
-            // return $this->areClassesSame($node->class->toString(), $subjectClass);
+            return $node instanceof Expression &&
+                $node->expr instanceof FuncCall &&
+                $node->expr->name->toString() === $functionName;
         });
 
-        dd();
+        return collect($calls)->map(function (Expression $node) use ($functionName) {
+            /** @var FuncCall $functionCall */
+            $functionCall = $node->expr;
 
-        return collect($calls)->map(function (StaticCall $node) use ($functionName) {
             return new ResolvedCall(
-                dispatcherClass: $functionName,
-                dispatchedClass: $this->resolveClassFromArgument($node->args[0]),
-                method: $node->name->toString(),
+                dispatcherClass: 'none',
+                dispatchedClass: $this->resolveClassFromArgument($functionCall->args[0]),
+                method: $functionName,
             );
         })->toArray();
     }
