@@ -12,6 +12,8 @@ Laravel package to visualize events with their handlers, including jobs to chain
 
 ## Installation
 
+You will need PHP 8.1 or higher.
+
 You can install the package via composer:
 
 ```bash
@@ -34,12 +36,9 @@ php artisan vendor:publish --tag="event-visualizer-views"
 
 Visit `your-app.test/event-visualizer` on a non-production environment.
 
-### Auto discovery
+## Supported
 
-Auto discovery of events and jobs might still fail. If you're using this and encounter errors, please open an issue.
-
-If you want to enable auto discovery, enable `auto_discover_jobs_and_events` in your config. This will currently disable manual discovery.
-If this gives you any problems, you should opt for manual discovery.
+Auto discovery of events and jobs might still fail. If you encounter errors, please open an issue.
 
 Refer to the table below for support.
 
@@ -51,60 +50,27 @@ Refer to the table below for support.
 |                               | `Bus::dispatchToQueue(new Job())`                  | yes       |
 |                               | `Bus::dispatchAfterResponse(new Job())`            | yes       |
 |                               | `Event::dispatch(new Event())`                     | yes       |
+|                               | `Bus::chain([new Event()])`                        | no (WIP)  |
 | Method call with inline class | `$jobDispatcher->dispatch(new Job())`              | yes       |
 |                               | `$jobDispatcher->dispatchNow(new Job())`           | yes       |
 |                               | `$jobDispatcher->dispatchSync(new Job())`          | yes       |
 |                               | `$jobDispatcher->dispatchToQueue(new Job())`       | yes       |
 |                               | `$jobDispatcher->dispatchAfterResponse(new Job())` | yes       |
 |                               | `$eventDispatcher->dispatch(new Event())`          | yes       |
-| Static call with variable     | `Bus::dispatch($job)`                              | yes (WIP) |
-|                               | `Bus::dispatchNow($job)`                           | yes (WIP) |
-|                               | `Bus::dispatchSync($job)`                          | yes (WIP) |
-|                               | `Bus::dispatchToQueue($job)`                       | yes (WIP) |
-|                               | `Bus::dispatchAfterResponse($job)`                 | yes (WIP) |
-|                               | `Event::dispatch($event)`                          | yes (WIP) |
-| Method call with variable     | `$jobDispatcher->dispatch($job)`                   | yes (WIP) |
-|                               | `$jobDispatcher->dispatchNow($job)`                | yes (WIP) |
-|                               | `$jobDispatcher->dispatchSync($job)`               | yes (WIP) |
-|                               | `$jobDispatcher->dispatchToQueue($job)`            | yes (WIP) |
-|                               | `$jobDispatcher->dispatchAfterResponse($job)`      | yes (WIP) |
-|                               | `$eventDispatcher->dispatch($event)`               | yes (WIP) |
-
-### Manual discovery
-
-To make sure your listeners and jobs are linked together, add the following snippets wherever applicable:
-
-```php
-<?php
-
-class ListenerOrJob {
-    public function handle(): void
-    {
-        ...
-        Event::dispatch(Event1::class);
-        Event::dispatchNow(Event1::class);
-        Bus::dispatch(Job1::class);
-        Bus::dispatchNow(Job2::class);
-        ...
-    }
-
-    public static function dispatchesEvents(): array
-    {
-        return [
-            Event1::class,
-            Event2::class,
-        ];
-    }
-    
-    public static function dispatchesJobs(): array
-    {
-        return [
-            Job1::class,
-            Job2::class,
-        ];
-    }
-}
-```
+| Static call with variable     | `Bus::dispatch($job)`                              | yes       |
+|                               | `Bus::dispatchNow($job)`                           | yes       |
+|                               | `Bus::dispatchSync($job)`                          | yes       |
+|                               | `Bus::dispatchToQueue($job)`                       | yes       |
+|                               | `Bus::dispatchAfterResponse($job)`                 | yes       |
+|                               | `Event::dispatch($event)`                          | yes       |
+| Method call with variable     | `$jobDispatcher->dispatch($job)`                   | yes       |
+|                               | `$jobDispatcher->dispatchNow($job)`                | yes       |
+|                               | `$jobDispatcher->dispatchSync($job)`               | yes       |
+|                               | `$jobDispatcher->dispatchToQueue($job)`            | yes       |
+|                               | `$jobDispatcher->dispatchAfterResponse($job)`      | yes       |
+|                               | `$eventDispatcher->dispatch($event)`               | yes       |
+| `event(...)` helper           | `event($event)`                                    | no (WIP)  |
+| `dispatch(...)` helper        | `dispatch($job)`                                   | no (WIP)  |
 
 ## Testing
 
