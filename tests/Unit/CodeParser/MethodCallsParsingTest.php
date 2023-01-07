@@ -53,9 +53,9 @@ final class MethodCallsParsingTest extends TestCase
                 'dispatch',
                 [
                     new ResolvedCall(
-                        class: 'Illuminate\Contracts\Events\Dispatcher',
+                        dispatcherClass: 'Illuminate\Contracts\Events\Dispatcher',
+                        dispatchedClass: 'App\Events\SomeEvent',
                         method: 'dispatch',
-                        argumentClass: 'App\Events\SomeEvent',
                     ),
                 ],
             ],
@@ -81,9 +81,9 @@ final class MethodCallsParsingTest extends TestCase
                 'dispatch',
                 [
                     new ResolvedCall(
-                        class: 'Illuminate\Contracts\Events\Dispatcher',
+                        dispatcherClass: 'Illuminate\Contracts\Events\Dispatcher',
+                        dispatchedClass: 'App\Events\SomeEvent',
                         method: 'dispatch',
-                        argumentClass: 'App\Events\SomeEvent',
                     ),
                 ],
             ],
@@ -132,14 +132,14 @@ final class MethodCallsParsingTest extends TestCase
                 'dispatchNow',
                 [
                     new ResolvedCall(
-                        class: 'Illuminate\Contracts\Bus\Dispatcher',
+                        dispatcherClass: 'Illuminate\Contracts\Bus\Dispatcher',
+                        dispatchedClass: 'App\Jobs\Job1',
                         method: 'dispatchNow',
-                        argumentClass: 'App\Jobs\Job1',
                     ),
                     new ResolvedCall(
-                        class: 'Illuminate\Contracts\Bus\Dispatcher',
+                        dispatcherClass: 'Illuminate\Contracts\Bus\Dispatcher',
+                        dispatchedClass: 'App\Jobs\Job2',
                         method: 'dispatchNow',
-                        argumentClass: 'App\Jobs\Job2',
                     ),
                 ],
             ],
@@ -215,9 +215,9 @@ final class MethodCallsParsingTest extends TestCase
                 'dispatch',
                 [
                     new ResolvedCall(
-                        class: 'Illuminate\Contracts\Events\Dispatcher',
+                        dispatcherClass: 'Illuminate\Contracts\Events\Dispatcher',
+                        dispatchedClass: 'App\Events\EventThatIsDispatched',
                         method: 'dispatch',
-                        argumentClass: 'App\Events\EventThatIsDispatched',
                     ),
                 ],
             ],

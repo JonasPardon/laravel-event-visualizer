@@ -59,9 +59,9 @@ class CodeParser
 
         return collect($calls)->map(function (StaticCall $node) use ($subjectClass) {
             return new ResolvedCall(
-                class: $subjectClass,
+                dispatcherClass: $subjectClass,
+                dispatchedClass: $this->resolveClassFromArgument($node->args[0]),
                 method: $node->name->toString(),
-                argumentClass: $this->resolveClassFromArgument($node->args[0]),
             );
         })->toArray();
     }
@@ -103,9 +103,38 @@ class CodeParser
 
         return collect($calls)->map(function (MethodCall $node) use ($subjectClass) {
             return new ResolvedCall(
-                class: $subjectClass,
+                dispatcherClass: $subjectClass,
+                dispatchedClass: $this->resolveClassFromArgument($node->args[0]),
                 method: $node->name->toString(),
-                argumentClass: $this->resolveClassFromArgument($node->args[0]),
+            );
+        })->toArray();
+    }
+
+    public function getFunctionCalls(string $functionName): array
+    {
+        dd($this->nodes);
+        $calls = $this->nodeFinder->find($this->nodes, function (Node $node) use ($functionName) {
+            dump($node);
+            // if (!$node instanceof StaticCall) {
+            //     return false;
+            // }
+            //
+            // // Check if call matches what we're looking for ('like 'dispatch')
+            // if ($node->name->toString() !== $methodName) {
+            //     return false;
+            // }
+            //
+            // // Check if variable it's called on is an instance of the subject class
+            // return $this->areClassesSame($node->class->toString(), $subjectClass);
+        });
+
+        dd();
+
+        return collect($calls)->map(function (StaticCall $node) use ($functionName) {
+            return new ResolvedCall(
+                dispatcherClass: $functionName,
+                dispatchedClass: $this->resolveClassFromArgument($node->args[0]),
+                method: $node->name->toString(),
             );
         })->toArray();
     }
