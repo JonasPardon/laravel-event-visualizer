@@ -154,6 +154,11 @@ class EventVisualizer
 
         $events = [];
 
+        $foundFunctionCalls = $codeParser->getFunctionCalls('event');
+        if (count($foundFunctionCalls) > 0) {
+            $events = array_merge($events, $foundFunctionCalls);
+        }
+
         foreach ($classes as $class) {
             foreach ($methods as $method) {
                 $foundStaticCalls = $codeParser->getStaticCalls($class, $method);
