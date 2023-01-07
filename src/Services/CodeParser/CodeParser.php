@@ -14,6 +14,7 @@ use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
@@ -216,6 +217,14 @@ class CodeParser
                     }
                 }
             }
+        }
+
+        /** @var Namespace_|null $namespaceNode */
+        $namespaceNode = $this->nodeFinder->findFirstInstanceOf($this->nodes, Namespace_::class);
+
+        if ($namespaceNode !== null) {
+            // Classes are not imported if they share the same namespace as the current class
+            return $namespaceNode->name->toString() . '\\' . $className;
         }
 
         return $className; // Not imported, this is the FQN

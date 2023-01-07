@@ -136,7 +136,7 @@ class EventVisualizer
                 $this->analyseClass($resolvedCall->argumentClass);
             });
         } catch (Throwable $e) {
-            // dump("Failed to analyse $sanitizedClassName");
+            dump("Failed to analyse $sanitizedClassName");
             // throw $e;
         }
     }
