@@ -6,7 +6,7 @@ namespace JonasPardon\LaravelEventVisualizer\Models;
 
 use JonasPardon\Mermaid\Models\Style;
 
-final class Job extends VisualizerNode
+class Job extends VisualizerNode
 {
     public function getType(): string
     {

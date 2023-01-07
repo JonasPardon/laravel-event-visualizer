@@ -1,36 +1,38 @@
-<?php
-
-declare(strict_types=1);
+<?php declare(strict_types=1);
 
 namespace JonasPardon\LaravelEventVisualizer;
 
 use Closure;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use JonasPardon\LaravelEventVisualizer\Models\Event;
 use JonasPardon\LaravelEventVisualizer\Models\Job;
 use JonasPardon\LaravelEventVisualizer\Models\Listener;
 use JonasPardon\LaravelEventVisualizer\Models\VisualizerNode;
-use JonasPardon\LaravelEventVisualizer\Services\CodeParser;
+use JonasPardon\LaravelEventVisualizer\Services\CodeParser\CodeParser;
+use JonasPardon\LaravelEventVisualizer\Services\CodeParser\ValueObjects\ResolvedCall;
 use JonasPardon\Mermaid\Models\Graph;
 use JonasPardon\Mermaid\Models\Link;
 use JonasPardon\Mermaid\Models\Node;
 use JonasPardon\Mermaid\VO\LinkStyle;
 use JonasPardon\Mermaid\VO\NodeShape;
+use ReflectionClass;
+use Throwable;
 
 class EventVisualizer
 {
-    private bool $showLaravelEvents;
-    private array $classesToIgnore;
-    private bool $autoDiscoverJobsAndEvents;
-    private string $mermaidString = '';
-    private Graph $graph;
+    private readonly bool $showLaravelEvents;
+    private readonly array $classesToIgnore;
+    private readonly Graph $graph;
+    private readonly Collection $analysedClasses;
 
-    public function __construct(private CodeParser $parser)
+    public function __construct()
     {
         $this->showLaravelEvents = config('event-visualizer.show_laravel_events', false);
         $this->classesToIgnore = config('event-visualizer.classes_to_ignore', []);
-        $this->autoDiscoverJobsAndEvents = config('event-visualizer.auto_discover_jobs_and_events', false);
         $this->graph = new Graph();
+
+        $this->analysedClasses = new Collection();
     }
 
     public function getMermaidStringForEvents(): string
@@ -68,25 +70,140 @@ class EventVisualizer
     public function addEventsToGraph(array $events): void
     {
         foreach ($events as $event => $listeners) {
-            if (!$this->showLaravelEvents && !Str::startsWith($event, 'App')) {
-                // Get only our own events, not the default laravel ones
+            if ($this->isIgnored($event)) {
                 continue;
             }
 
+            if (!$this->showLaravelEvents && !Str::startsWith($event, 'App')) {
+                continue; // Get only our own events, not the default laravel ones
+            }
+
             foreach ($listeners as $listener) {
-                // todo: this currently only ignores listeners. Should also ignore events and jobs.
-                if (Str::contains($listener, $this->classesToIgnore)) {
+                if ($this->isIgnored($listener)) {
                     continue;
                 }
 
-                $this->connectNodes(new Event($event), new Listener($listener));
+                $this->connectNodes(
+                    from: new Event($event),
+                    to: new Listener($listener),
+                );
+
+                $this->analyseClass($listener);
             }
         }
     }
 
-    private function entryExists(string $entry): bool
+    private function analyseClass(string $className): void
     {
-        return Str::contains($this->mermaidString, $entry);
+        if ($this->isIgnored($className)) {
+            return;
+        }
+
+        $sanitizedClassName = Str::before($className, '@');
+
+        if ($this->analysedClasses->contains($sanitizedClassName)) {
+            return; // Prevent infinite loops since this method is recursive. Also, performance, ya know.
+        }
+
+        $this->analysedClasses->push($sanitizedClassName);
+
+        if (Str::contains($sanitizedClassName, 'StoreEventHistory')) {
+            return;
+        }
+
+        try {
+            $code = $this->getCodeFromClass($sanitizedClassName);
+            $parser = new CodeParser($code);
+
+            $jobs = $this->getDispatchedJobs($parser);
+            $events = $this->getDispatchedEvents($parser);
+
+            $events->each(function (ResolvedCall $resolvedCall) use ($sanitizedClassName) {
+                $this->connectNodes(
+                    from: new Event($sanitizedClassName),
+                    to: new Listener($resolvedCall->argumentClass),
+                );
+
+                $this->analyseClass($resolvedCall->argumentClass);
+            });
+
+            $jobs->each(function (ResolvedCall $resolvedCall) use ($sanitizedClassName) {
+                $this->connectNodes(
+                    from: new Event($sanitizedClassName),
+                    to: new Job($resolvedCall->argumentClass),
+                );
+
+                $this->analyseClass($resolvedCall->argumentClass);
+            });
+        } catch (Throwable $e) {
+            dump("Failed to analyse $sanitizedClassName");
+            // throw $e;
+        }
+    }
+
+    private function getDispatchedEvents(CodeParser $codeParser): Collection
+    {
+        $classes = [
+            'Event',
+            'Illuminate\Support\Facades\Event',
+            'Illuminate\Contracts\Events\Dispatcher',
+        ];
+        $methods = [
+            'dispatch',
+        ];
+
+        $events = [];
+
+        foreach ($classes as $class) {
+            foreach ($methods as $method) {
+                $foundStaticCalls = $codeParser->getStaticCalls($class, $method);
+                if (count($foundStaticCalls) !== 0) {
+                    $events = array_merge($events, $foundStaticCalls);
+                }
+
+                $foundMethodCalls = $codeParser->getMethodCalls($class, $method);
+                if (count($foundMethodCalls) !== 0) {
+                    $events = array_merge($events, $foundMethodCalls);
+                }
+            }
+        }
+
+        return collect($events);
+    }
+
+    private function getDispatchedJobs(CodeParser $codeParser): Collection
+    {
+        $classes = [
+            'Bus',
+            'Illuminate\Support\Facades\Bus',
+            'Illuminate\Contracts\Bus\Dispatcher',
+        ];
+        $methods = [
+            'dispatch',
+            'dispatchNow',
+            'dispatchSync',
+            'dispatchToQueue',
+            'dispatchAfterResponse',
+            'dispatchAfterCommit',
+        ];
+
+        $jobs = [];
+
+        foreach ($classes as $class) {
+            foreach ($methods as $method) {
+                $foundStaticCalls = $codeParser->getStaticCalls($class, $method);
+                if (count($foundStaticCalls) !== 0) {
+                    $jobs = array_merge($jobs, $foundStaticCalls);
+                }
+
+                $foundMethodCalls = $codeParser->getMethodCalls($class, $method);
+                if (count($foundMethodCalls) !== 0) {
+                    $jobs = array_merge($jobs, $foundMethodCalls);
+                }
+            }
+        }
+
+        return collect($jobs);
     }
 
     private function connectNodes(VisualizerNode $from, VisualizerNode $to): void
@@ -103,50 +220,33 @@ class EventVisualizer
             shape: new NodeShape(NodeShape::ROUND_EDGES),
             style: $to->getStyle(),
         );
-        $link = new Link($fromNode, $toNode, null, new LinkStyle(LinkStyle::ARROW_HEAD));
+        $link = new Link(
+            from: $fromNode,
+            to: $toNode,
+            text: null,
+            linkStyle: new LinkStyle(LinkStyle::ARROW_HEAD),
+        );
 
         $this->graph->addNode($fromNode)
             ->addNode($toNode)
             ->addLink($link);
-
-        $entry = $from->toString() . ' --> ' . $to->toString() . ';' . PHP_EOL;
-
-        if ($this->entryExists($entry)) {
-            return;
-        }
-
-        $this->mermaidString .= $entry;
-        $this->handleChildren($to);
     }
 
-    private function handleChildren(VisualizerNode $parentNode): void
+    private function getCodeFromClass(string $className): string
     {
-        $className = $parentNode->getClassName();
+        $reflection = new ReflectionClass($className);
+        $source = file($reflection->getFileName());
 
-        if ($this->autoDiscoverJobsAndEvents) {
-            $this->parser
-                ->getDispatchedJobsFromVisualizerNode($parentNode)
-                ->each(function (Job $job) use ($parentNode) {
-                    $this->connectNodes($parentNode, $job);
-                });
+        return implode('', $source);
+    }
 
-            $this->parser
-                ->getDispatchedEventsFromVisualizerNode($parentNode)
-                ->each(function (Event $event) use ($parentNode) {
-                    $this->connectNodes($parentNode, $event);
-                });
-        } else {
-            if (method_exists($className, 'dispatchesJobs')) {
-                foreach ($className::dispatchesJobs() as $job) {
-                    $this->connectNodes($parentNode, new Job($job));
-                }
-            }
+    private function sanitizeClassName(string $className): string
+    {
+        return Str::before($className, '@');
+    }
 
-            if (method_exists($className, 'dispatchesEvents')) {
-                foreach ($className::dispatchesEvents() as $event) {
-                    $this->connectNodes($parentNode, new Event($event));
-                }
-            }
-        }
+    private function isIgnored(string $className): bool
+    {
+        return Str::contains($this->sanitizeClassName($className), $this->classesToIgnore);
     }
 }

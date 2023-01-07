@@ -13,7 +13,7 @@ class TestCase extends Orchestra
         parent::setUp();
 
         Factory::guessFactoryNamesUsing(
-            fn (string $modelName) => 'JonasPardon\\EventVisualizer\\Database\\Factories\\'.class_basename($modelName).'Factory'
+            fn (string $modelName) => 'JonasPardon\\EventVisualizerLegacy\\Database\\Factories\\'.class_basename($modelName).'Factory'
         );
     }
 

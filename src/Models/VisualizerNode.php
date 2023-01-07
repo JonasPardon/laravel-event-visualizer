@@ -15,9 +15,8 @@ abstract class VisualizerNode implements VisualizerNodeInterface
 
     private bool $showSubscriberInternalHandlerMethods;
 
-    public function __construct(
-        private string $class,
-    ) {
+    public function __construct(private readonly string $class)
+    {
         $this->showSubscriberInternalHandlerMethods = config('event-visualizer.show_subscriber_internal_handler_methods', false);
     }
 
