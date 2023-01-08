@@ -42,4 +42,39 @@ final class FunctionCallsParsingTest extends TestCase
         $this->assertEquals($expectedHelperCall->method, $helperCalls[0]->method);
         $this->assertEquals($expectedHelperCall->dispatchedClass, $helperCalls[0]->dispatchedClass);
     }
+
+    /** @test */
+    public function it_finds_a_dispatch_helper_call(): void
+    {
+        $code = <<<'CODE'
+            <?php
+            
+            namespace App\Domain\SomeDomain;
+            
+            use App\Events\SomeJob;
+            
+            class SomeClass
+            {
+                public function handle(): void
+                {
+                    dispatch(new SomeJob());
+                }
+            }
+            CODE;
+
+        $codeParser = new CodeParser($code);
+
+        $helperCalls = $codeParser->getFunctionCalls('dispatch');
+
+        $expectedHelperCall = new ResolvedCall(
+            dispatcherClass: 'none',
+            dispatchedClass: 'App\Events\SomeJob',
+            method: 'dispatch',
+        );
+
+        $this->assertCount(1, $helperCalls);
+        $this->assertEquals($expectedHelperCall->dispatcherClass, $helperCalls[0]->dispatcherClass);
+        $this->assertEquals($expectedHelperCall->method, $helperCalls[0]->method);
+        $this->assertEquals($expectedHelperCall->dispatchedClass, $helperCalls[0]->dispatchedClass);
+    }
 }
