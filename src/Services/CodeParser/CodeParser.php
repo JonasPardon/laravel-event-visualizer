@@ -7,6 +7,7 @@ use JonasPardon\LaravelEventVisualizer\Services\CodeParser\ValueObjects\Resolved
 use PhpParser\Node;
 use PhpParser\Node\Arg;
 use PhpParser\Node\Expr\Assign;
+use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
 use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\PropertyFetch;
@@ -14,6 +15,7 @@ use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\Variable;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\ClassMethod;
+use PhpParser\Node\Stmt\Expression;
 use PhpParser\Node\Stmt\Namespace_;
 use PhpParser\Node\Stmt\Use_;
 use PhpParser\NodeFinder;
@@ -59,9 +61,9 @@ class CodeParser
 
         return collect($calls)->map(function (StaticCall $node) use ($subjectClass) {
             return new ResolvedCall(
-                class: $subjectClass,
+                dispatcherClass: $subjectClass,
+                dispatchedClass: $this->resolveClassFromArgument($node->args[0]),
                 method: $node->name->toString(),
-                argumentClass: $this->resolveClassFromArgument($node->args[0]),
             );
         })->toArray();
     }
@@ -103,9 +105,29 @@ class CodeParser
 
         return collect($calls)->map(function (MethodCall $node) use ($subjectClass) {
             return new ResolvedCall(
-                class: $subjectClass,
+                dispatcherClass: $subjectClass,
+                dispatchedClass: $this->resolveClassFromArgument($node->args[0]),
                 method: $node->name->toString(),
-                argumentClass: $this->resolveClassFromArgument($node->args[0]),
+            );
+        })->toArray();
+    }
+
+    public function getFunctionCalls(string $functionName): array
+    {
+        $calls = $this->nodeFinder->find($this->nodes, function (Node $node) use ($functionName) {
+            return $node instanceof Expression &&
+                $node->expr instanceof FuncCall &&
+                $node->expr->name->toString() === $functionName;
+        });
+
+        return collect($calls)->map(function (Expression $node) use ($functionName) {
+            /** @var FuncCall $functionCall */
+            $functionCall = $node->expr;
+
+            return new ResolvedCall(
+                dispatcherClass: 'none',
+                dispatchedClass: $this->resolveClassFromArgument($functionCall->args[0]),
+                method: $functionName,
             );
         })->toArray();
     }

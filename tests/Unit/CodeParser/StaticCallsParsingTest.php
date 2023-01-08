@@ -51,9 +51,9 @@ final class StaticCallsParsingTest extends TestCase
                 'dispatch',
                 [
                     new ResolvedCall(
-                        class: 'Event',
+                        dispatcherClass: 'Event',
+                        dispatchedClass: 'App\Events\SomeEvent',
                         method: 'dispatch',
-                        argumentClass: 'App\Events\SomeEvent',
                     ),
                 ],
             ],
@@ -79,9 +79,9 @@ final class StaticCallsParsingTest extends TestCase
                 'dispatch',
                 [
                     new ResolvedCall(
-                        class: 'Event',
+                        dispatcherClass: 'Event',
+                        dispatchedClass: 'App\Events\SomeEvent',
                         method: 'dispatch',
-                        argumentClass: 'App\Events\SomeEvent',
                     ),
                 ],
             ],
@@ -105,9 +105,9 @@ final class StaticCallsParsingTest extends TestCase
                 'dispatch',
                 [
                     new ResolvedCall(
-                        class: 'Illuminate\Support\Facades\Event',
+                        dispatcherClass: 'Illuminate\Support\Facades\Event',
+                        dispatchedClass: 'App\Events\SomeEvent',
                         method: 'dispatch',
-                        argumentClass: 'App\Events\SomeEvent',
                     ),
                 ],
             ],
@@ -133,9 +133,9 @@ final class StaticCallsParsingTest extends TestCase
                 'dispatch',
                 [
                     new ResolvedCall(
-                        class: 'Illuminate\Support\Facades\Event',
+                        dispatcherClass: 'Illuminate\Support\Facades\Event',
+                        dispatchedClass: 'App\Events\SomeEvent',
                         method: 'dispatch',
-                        argumentClass: 'App\Events\SomeEvent',
                     ),
                 ],
             ],
@@ -161,9 +161,9 @@ final class StaticCallsParsingTest extends TestCase
                 'dispatch',
                 [
                     new ResolvedCall(
-                        class: 'Illuminate\Support\Facades\Event',
+                        dispatcherClass: 'Illuminate\Support\Facades\Event',
+                        dispatchedClass: 'App\Events\SomeEvent',
                         method: 'dispatch',
-                        argumentClass: 'App\Events\SomeEvent',
                     ),
                 ],
             ],
@@ -259,14 +259,14 @@ final class StaticCallsParsingTest extends TestCase
                 'dispatch',
                 [
                     new ResolvedCall(
-                        class: 'Illuminate\Support\Facades\Event',
+                        dispatcherClass: 'Illuminate\Support\Facades\Event',
+                        dispatchedClass: 'App\Events\SomeEvent',
                         method: 'dispatch',
-                        argumentClass: 'App\Events\SomeEvent',
                     ),
                     new ResolvedCall(
-                        class: 'Illuminate\Support\Facades\Event',
+                        dispatcherClass: 'Illuminate\Support\Facades\Event',
+                        dispatchedClass: 'App\Events\SomeOtherEvent',
                         method: 'dispatch',
-                        argumentClass: 'App\Events\SomeOtherEvent',
                     ),
                 ],
             ],

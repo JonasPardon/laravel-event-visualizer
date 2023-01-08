@@ -5,9 +5,9 @@ namespace JonasPardon\LaravelEventVisualizer\Services\CodeParser\ValueObjects;
 class ResolvedCall
 {
     public function __construct(
-        public readonly string $class,
+        public readonly string $dispatcherClass,
+        public readonly string $dispatchedClass,
         public readonly string $method,
-        public readonly string $argumentClass,
     ) {
     }
 }

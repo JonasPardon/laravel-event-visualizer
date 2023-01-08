@@ -121,19 +121,19 @@ class EventVisualizer
             $events->each(function (ResolvedCall $resolvedCall) use ($sanitizedClassName) {
                 $this->connectNodes(
                     from: new Event($sanitizedClassName),
-                    to: new Listener($resolvedCall->argumentClass),
+                    to: new Listener($resolvedCall->dispatchedClass),
                 );
 
-                $this->analyseClass($resolvedCall->argumentClass);
+                $this->analyseClass($resolvedCall->dispatchedClass);
             });
 
             $jobs->each(function (ResolvedCall $resolvedCall) use ($sanitizedClassName) {
                 $this->connectNodes(
                     from: new Event($sanitizedClassName),
-                    to: new Job($resolvedCall->argumentClass),
+                    to: new Job($resolvedCall->dispatchedClass),
                 );
 
-                $this->analyseClass($resolvedCall->argumentClass);
+                $this->analyseClass($resolvedCall->dispatchedClass);
             });
         } catch (Throwable $e) {
             dump("Failed to analyse $sanitizedClassName");
@@ -153,6 +153,11 @@ class EventVisualizer
         ];
 
         $events = [];
+
+        $foundFunctionCalls = $codeParser->getFunctionCalls('event');
+        if (count($foundFunctionCalls) > 0) {
+            $events = array_merge($events, $foundFunctionCalls);
+        }
 
         foreach ($classes as $class) {
             foreach ($methods as $method) {
