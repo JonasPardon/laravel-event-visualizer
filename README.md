@@ -55,9 +55,9 @@ Auto discovery of events and jobs might still fail. If you encounter errors, ple
 | `\Illuminate\Support\Facades\Bus` facade static call             | ✅          |
 | `\Illuminate\Contracts\Events\Dispatcher` injected variable call | ✅          |
 | `\Illuminate\Contracts\Bus\Dispatcher` injected variable call    | ✅          |
+| `event(...)` helper                                              | ✅          |
+| `dispatch(...)` helper                                           | ✅          |
 | Bus chains                                                       | ❌ (WIP)    |
-| `event(...)` helper                                              | ❌ (WIP)    |
-| `dispatch(...)` helper                                           | ❌ (WIP)    |
 
 For dependency injection, both constructor and method injection are supported.
 
