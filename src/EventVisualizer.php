@@ -194,6 +194,11 @@ class EventVisualizer
 
         $jobs = [];
 
+        $foundFunctionCalls = $codeParser->getFunctionCalls('dispatch');
+        if (count($foundFunctionCalls) > 0) {
+            $jobs = array_merge($jobs, $foundFunctionCalls);
+        }
+
         foreach ($classes as $class) {
             foreach ($methods as $method) {
                 $foundStaticCalls = $codeParser->getStaticCalls($class, $method);
