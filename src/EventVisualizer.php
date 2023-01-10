@@ -155,21 +155,15 @@ class EventVisualizer
         $events = [];
 
         $foundFunctionCalls = $codeParser->getFunctionCalls('event');
-        if (count($foundFunctionCalls) > 0) {
-            $events = array_merge($events, $foundFunctionCalls);
-        }
+        $events = array_merge($events, $foundFunctionCalls);
 
         foreach ($classes as $class) {
             foreach ($methods as $method) {
                 $foundStaticCalls = $codeParser->getStaticCalls($class, $method);
-                if (count($foundStaticCalls) !== 0) {
-                    $events = array_merge($events, $foundStaticCalls);
-                }
+                $events = array_merge($events, $foundStaticCalls);
 
                 $foundMethodCalls = $codeParser->getMethodCalls($class, $method);
-                if (count($foundMethodCalls) !== 0) {
-                    $events = array_merge($events, $foundMethodCalls);
-                }
+                $events = array_merge($events, $foundMethodCalls);
             }
         }
 
@@ -203,14 +197,10 @@ class EventVisualizer
         foreach ($classes as $class) {
             foreach ($methods as $method) {
                 $foundStaticCalls = $codeParser->getStaticCalls($class, $method);
-                if (count($foundStaticCalls) !== 0) {
-                    $jobs = array_merge($jobs, $foundStaticCalls);
-                }
+                $jobs = array_merge($jobs, $foundStaticCalls);
 
                 $foundMethodCalls = $codeParser->getMethodCalls($class, $method);
-                if (count($foundMethodCalls) !== 0) {
-                    $jobs = array_merge($jobs, $foundMethodCalls);
-                }
+                $jobs = array_merge($jobs, $foundMethodCalls);
             }
         }
 
