@@ -5,6 +5,7 @@ namespace JonasPardon\LaravelEventVisualizer\Tests\Unit\CodeParser;
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser\CodeParser;
 use JonasPardon\LaravelEventVisualizer\Tests\TestCase;
 use PhpParser\Node\Arg;
+use PhpParser\Node\Expr\StaticCall;
 use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\Parser;
@@ -46,9 +47,10 @@ final class ArgumentResolverTest extends TestCase
 
         /** @var Arg $argument */
         $argument = $this->nodeFinder->findFirstInstanceOf($nodes, Arg::class);
-        $resolvedClass = $codeParser->resolveClassesFromArgument($argument);
+        $resolvedClasses = $codeParser->resolveClassesFromArgument($argument);
 
-        $this->assertEquals('App\Events\SomeEvent', $resolvedClass[0]);
+        $this->assertCount(1, $resolvedClasses);
+        $this->assertEquals('App\Events\SomeEvent', $resolvedClasses[0]);
     }
 
     /** @test */
@@ -74,9 +76,10 @@ final class ArgumentResolverTest extends TestCase
 
         /** @var Arg $argument */
         $argument = $this->nodeFinder->findFirstInstanceOf($nodes, Arg::class);
-        $resolvedClass = $codeParser->resolveClassesFromArgument($argument);
+        $resolvedClasses = $codeParser->resolveClassesFromArgument($argument);
 
-        $this->assertEquals('App\Events\SomeEvent', $resolvedClass[0]);
+        $this->assertCount(1, $resolvedClasses);
+        $this->assertEquals('App\Events\SomeEvent', $resolvedClasses[0]);
     }
 
     /** @test */
@@ -102,9 +105,10 @@ final class ArgumentResolverTest extends TestCase
 
         /** @var Arg $argument */
         $argument = $this->nodeFinder->findFirstInstanceOf($nodes, Arg::class);
-        $resolvedClass = $codeParser->resolveClassesFromArgument($argument);
+        $resolvedClasses = $codeParser->resolveClassesFromArgument($argument);
 
-        $this->assertEquals('App\Events\SomeEvent', $resolvedClass[0]);
+        $this->assertCount(1, $resolvedClasses);
+        $this->assertEquals('App\Events\SomeEvent', $resolvedClasses[0]);
     }
 
     /** @test */
@@ -129,9 +133,10 @@ final class ArgumentResolverTest extends TestCase
 
         /** @var Arg $argument */
         $argument = $this->nodeFinder->findFirstInstanceOf($nodes, Arg::class);
-        $resolvedClass = $codeParser->resolveClassesFromArgument($argument);
+        $resolvedClasses = $codeParser->resolveClassesFromArgument($argument);
 
-        $this->assertEquals('App\Events\SomeEvent', $resolvedClass[0]);
+        $this->assertCount(1, $resolvedClasses);
+        $this->assertEquals('App\Events\SomeEvent', $resolvedClasses[0]);
     }
 
     /** @test */
@@ -158,9 +163,10 @@ final class ArgumentResolverTest extends TestCase
 
         /** @var Arg $argument */
         $argument = $this->nodeFinder->findFirstInstanceOf($nodes, Arg::class);
-        $resolvedClass = $codeParser->resolveClassesFromArgument($argument);
+        $resolvedClasses = $codeParser->resolveClassesFromArgument($argument);
 
-        $this->assertEquals('App\Events\SomeEvent', $resolvedClass[0]);
+        $this->assertCount(1, $resolvedClasses);
+        $this->assertEquals('App\Events\SomeEvent', $resolvedClasses[0]);
     }
 
     /** @test */
@@ -187,8 +193,42 @@ final class ArgumentResolverTest extends TestCase
 
         /** @var Arg $argument */
         $argument = $this->nodeFinder->findFirstInstanceOf($nodes, Arg::class);
-        $resolvedClass = $codeParser->resolveClassesFromArgument($argument);
+        $resolvedClasses = $codeParser->resolveClassesFromArgument($argument);
 
-        $this->assertEquals('App\Events\SomeEvent', $resolvedClass[0]);
+        $this->assertCount(1, $resolvedClasses);
+        $this->assertEquals('App\Events\SomeEvent', $resolvedClasses[0]);
     }
+
+    /** @test */
+    public function it_can_resolve_the_classes_of_an_array_of_jobs(): void
+    {
+        $code = <<<'CODE'
+            <?php
+
+            use Some\Namespace\SomeClass;
+            use Some\Namespace\SomeOtherClass;
+            use \Bus;
+
+            class ClassName
+            {
+                public function someMethod()
+                {
+                    Bus::dispatchChain([new Some\Namespace\SomeClass(), new Some\Namespace\SomeOtherClass()]);
+                }
+            }
+            CODE;
+
+        $codeParser = new CodeParser($code);
+        $syntaxTree = $this->parser->parse($code);
+        $nodes = $this->nodeTraverser->traverse($syntaxTree);
+
+        /** @var Arg $argument */
+        $argument = $this->nodeFinder->findFirstInstanceOf($nodes, StaticCall::class)->args[0];
+
+        $resolvedClasses = $codeParser->resolveClassesFromArgument($argument);
+
+        $this->assertCount(2, $resolvedClasses);
+        $this->assertEquals(['Some\Namespace\SomeClass', 'Some\Namespace\SomeOtherClass'], $resolvedClasses);
+    }
+
 }

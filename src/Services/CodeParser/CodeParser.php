@@ -219,6 +219,10 @@ class CodeParser
             return [$this->getFullyQualifiedClassName($argument->value->class->toString())];
         }
 
+        if ($argument->value instanceof Array_) {
+            return collect($argument->value->items)->map(fn (ArrayItem $item) => $this->getFullyQualifiedClassName($item->value->class->toString()))->all();
+        }
+
         return [];
     }
 
