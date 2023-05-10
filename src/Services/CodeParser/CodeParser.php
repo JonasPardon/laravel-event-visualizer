@@ -107,7 +107,9 @@ class CodeParser
                 throw new Exception('Static calls within method calls are not supported yet. If this is a Bus::chain, support is coming.');
             }
 
-            throw new Exception('Not supported yet. Please open an issue here: https://github.com/JonasPardon/laravel-event-visualizer/issues/new');
+            // throw new Exception('Not supported yet. Please open an issue here: https://github.com/JonasPardon/laravel-event-visualizer/issues/new');
+
+            return false;
         });
 
         return collect($calls)->map(function (MethodCall $node) use ($subjectClass) {
