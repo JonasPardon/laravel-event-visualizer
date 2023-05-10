@@ -30,7 +30,7 @@ final class ArgumentResolverTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             class ClassName
             {
                 public function someMethod()
@@ -46,9 +46,9 @@ final class ArgumentResolverTest extends TestCase
 
         /** @var Arg $argument */
         $argument = $this->nodeFinder->findFirstInstanceOf($nodes, Arg::class);
-        $resolvedClass = $codeParser->resolveClassFromArgument($argument);
+        $resolvedClass = $codeParser->resolveClassesFromArgument($argument);
 
-        $this->assertEquals('App\Events\SomeEvent', $resolvedClass);
+        $this->assertEquals('App\Events\SomeEvent', $resolvedClass[0]);
     }
 
     /** @test */
@@ -56,9 +56,9 @@ final class ArgumentResolverTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             use App\Events\SomeEvent;
-            
+
             class ClassName
             {
                 public function someMethod()
@@ -74,9 +74,9 @@ final class ArgumentResolverTest extends TestCase
 
         /** @var Arg $argument */
         $argument = $this->nodeFinder->findFirstInstanceOf($nodes, Arg::class);
-        $resolvedClass = $codeParser->resolveClassFromArgument($argument);
+        $resolvedClass = $codeParser->resolveClassesFromArgument($argument);
 
-        $this->assertEquals('App\Events\SomeEvent', $resolvedClass);
+        $this->assertEquals('App\Events\SomeEvent', $resolvedClass[0]);
     }
 
     /** @test */
@@ -84,9 +84,9 @@ final class ArgumentResolverTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             use App\Events\SomeEvent as SomeEventAlias;
-            
+
             class ClassName
             {
                 public function someMethod()
@@ -102,9 +102,9 @@ final class ArgumentResolverTest extends TestCase
 
         /** @var Arg $argument */
         $argument = $this->nodeFinder->findFirstInstanceOf($nodes, Arg::class);
-        $resolvedClass = $codeParser->resolveClassFromArgument($argument);
+        $resolvedClass = $codeParser->resolveClassesFromArgument($argument);
 
-        $this->assertEquals('App\Events\SomeEvent', $resolvedClass);
+        $this->assertEquals('App\Events\SomeEvent', $resolvedClass[0]);
     }
 
     /** @test */
@@ -112,7 +112,7 @@ final class ArgumentResolverTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             class ClassName
             {
                 public function someMethod()
@@ -129,9 +129,9 @@ final class ArgumentResolverTest extends TestCase
 
         /** @var Arg $argument */
         $argument = $this->nodeFinder->findFirstInstanceOf($nodes, Arg::class);
-        $resolvedClass = $codeParser->resolveClassFromArgument($argument);
+        $resolvedClass = $codeParser->resolveClassesFromArgument($argument);
 
-        $this->assertEquals('App\Events\SomeEvent', $resolvedClass);
+        $this->assertEquals('App\Events\SomeEvent', $resolvedClass[0]);
     }
 
     /** @test */
@@ -139,9 +139,9 @@ final class ArgumentResolverTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             use \App\Events\SomeEvent;
-            
+
             class ClassName
             {
                 public function someMethod()
@@ -158,9 +158,9 @@ final class ArgumentResolverTest extends TestCase
 
         /** @var Arg $argument */
         $argument = $this->nodeFinder->findFirstInstanceOf($nodes, Arg::class);
-        $resolvedClass = $codeParser->resolveClassFromArgument($argument);
+        $resolvedClass = $codeParser->resolveClassesFromArgument($argument);
 
-        $this->assertEquals('App\Events\SomeEvent', $resolvedClass);
+        $this->assertEquals('App\Events\SomeEvent', $resolvedClass[0]);
     }
 
     /** @test */
@@ -168,9 +168,9 @@ final class ArgumentResolverTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             use \App\Events\SomeEvent as SomeEventAlias;
-            
+
             class ClassName
             {
                 public function someMethod()
@@ -187,8 +187,8 @@ final class ArgumentResolverTest extends TestCase
 
         /** @var Arg $argument */
         $argument = $this->nodeFinder->findFirstInstanceOf($nodes, Arg::class);
-        $resolvedClass = $codeParser->resolveClassFromArgument($argument);
+        $resolvedClass = $codeParser->resolveClassesFromArgument($argument);
 
-        $this->assertEquals('App\Events\SomeEvent', $resolvedClass);
+        $this->assertEquals('App\Events\SomeEvent', $resolvedClass[0]);
     }
 }

@@ -6,6 +6,8 @@ use Exception;
 use JonasPardon\LaravelEventVisualizer\Services\CodeParser\ValueObjects\ResolvedCall;
 use PhpParser\Node;
 use PhpParser\Node\Arg;
+use PhpParser\Node\Expr\Array_;
+use PhpParser\Node\Expr\ArrayItem;
 use PhpParser\Node\Expr\Assign;
 use PhpParser\Node\Expr\FuncCall;
 use PhpParser\Node\Expr\MethodCall;
@@ -59,13 +61,18 @@ class CodeParser
             return $this->areClassesSame($node->class->toString(), $subjectClass);
         });
 
-        return collect($calls)->map(function (StaticCall $node) use ($subjectClass) {
-            return new ResolvedCall(
-                dispatcherClass: $subjectClass,
-                dispatchedClass: $this->resolveClassFromArgument($node->args[0]),
-                method: $node->name->toString(),
-            );
-        })->toArray();
+        $items = collect($calls)->map(function (StaticCall $node) use ($subjectClass) {
+            return collect($this->resolveClassesFromArgument($node->args[0]))
+                ->map(function (string $dispatchedClass) use ($subjectClass, $node) {
+                    return new ResolvedCall(
+                        dispatcherClass: $subjectClass,
+                        dispatchedClass: $dispatchedClass,
+                        method: $node->name->toString(),
+                    );
+                });
+        })->flatten(1)->all();
+
+        return $items;
     }
 
     public function getMethodCalls(
@@ -77,16 +84,16 @@ class CodeParser
                 return false;
             }
 
-            // Check if call matches what we're looking for ('like 'dispatch')
+            // Check if call matches what we're looking for (like 'dispatch')
             if ($node->name->toString() !== $methodName) {
                 return false;
             }
 
             // This happens when you inject the dispatcher and do '$dispatcher->dispatch()'
             if ($node->var instanceof Variable) {
-                $variableClass = $this->resolveClassFromVariable($node->var);
+                $variableClasses = $this->resolveClassesFromVariable($node->var);
 
-                return $this->areClassesSame($variableClass, $subjectClass);
+                return count($variableClasses) === 1 && $this->areClassesSame($variableClasses[0], $subjectClass);
             }
 
             // This happens when you inject the dispatcher and do '$this->dispatcher->dispatch()'
@@ -104,12 +111,15 @@ class CodeParser
         });
 
         return collect($calls)->map(function (MethodCall $node) use ($subjectClass) {
-            return new ResolvedCall(
-                dispatcherClass: $subjectClass,
-                dispatchedClass: $this->resolveClassFromArgument($node->args[0]),
-                method: $node->name->toString(),
-            );
-        })->toArray();
+            return collect($this->resolveClassesFromArgument($node->args[0]))
+                ->map(function (string $dispatchedClass) use ($subjectClass, $node) {
+                    return new ResolvedCall(
+                        dispatcherClass: $subjectClass,
+                        dispatchedClass: $dispatchedClass,
+                        method: $node->name->toString(),
+                    );
+                });
+        })->flatten(1)->all();
     }
 
     public function getFunctionCalls(string $functionName): array
@@ -124,12 +134,15 @@ class CodeParser
             /** @var FuncCall $functionCall */
             $functionCall = $node->expr;
 
-            return new ResolvedCall(
-                dispatcherClass: 'none',
-                dispatchedClass: $this->resolveClassFromArgument($functionCall->args[0]),
-                method: $functionName,
-            );
-        })->toArray();
+            return collect($this->resolveClassesFromArgument($functionCall->args[0]))
+                ->map(function (string $dispatchedClass) use ($functionName) {
+                    return new ResolvedCall(
+                        dispatcherClass: 'none',
+                        dispatchedClass: $dispatchedClass,
+                        method: $functionName,
+                    );
+                });
+        })->flatten(1)->all();
     }
 
     public function areClassesSame(string $class1, string $class2): bool
@@ -137,7 +150,7 @@ class CodeParser
         return $this->getFullyQualifiedClassName($class1) === $this->getFullyQualifiedClassName($class2);
     }
 
-    public function resolveClassFromVariable(Variable $variable): ?string
+    public function resolveClassesFromVariable(Variable $variable): array
     {
         /** @var Assign[] $assignmentNodes */
         $assignmentNodes = $this->nodeFinder->find($this->nodes, function (Node $node) use ($variable) {
@@ -148,9 +161,15 @@ class CodeParser
             return $node->var instanceof Variable && $node->var->name === $variable->name;
         });
 
+        $classes = [];
+
         foreach ($assignmentNodes as $assignmentNode) {
             if ($assignmentNode->expr instanceof New_) {
-                return $this->getFullyQualifiedClassName($assignmentNode->expr->class->toString());
+                $classes[] = $this->getFullyQualifiedClassName($assignmentNode->expr->class->toString());
+            }
+
+            if ($assignmentNode->expr instanceof Array_) {
+                array_push($classes, ...collect($assignmentNode->expr->items)->map(fn (ArrayItem $item) => $this->getFullyQualifiedClassName($item->value->class->toString()))->all());
             }
 
             // todo: handle other types of assignments
@@ -175,30 +194,30 @@ class CodeParser
             foreach ($injectionNode->params as $param) {
                 $className = implode('\\', $param->type->parts);
 
-                return $this->getFullyQualifiedClassName($className);
+                $classes[] = $this->getFullyQualifiedClassName($className);
             }
 
             // todo: handle other types of assignments
         }
 
-        return null;
+        return $classes;
     }
 
-    public function resolveClassFromArgument(Arg $argument): ?string
+    public function resolveClassesFromArgument(Arg $argument): array
     {
         if ($argument->value instanceof Variable) {
-            return $this->resolveClassFromVariable($argument->value);
+            return $this->resolveClassesFromVariable($argument->value);
         }
 
         if ($argument->value instanceof New_) {
             if ($argument->value->class instanceof FullyQualified) {
-                return $argument->value->class->toString();
+                return [$argument->value->class->toString()];
             }
 
-            return $this->getFullyQualifiedClassName($argument->value->class->toString());
+            return [$this->getFullyQualifiedClassName($argument->value->class->toString())];
         }
 
-        return null;
+        return [];
     }
 
     public function resolveClassFromProperty(PropertyFetch $property): ?string
