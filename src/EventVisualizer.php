@@ -74,7 +74,7 @@ class EventVisualizer
                 continue;
             }
 
-            if (!$this->showLaravelEvents && !Str::startsWith($event, 'App')) {
+            if (! $this->showLaravelEvents && ! Str::startsWith($event, 'App')) {
                 continue; // Get only our own events, not the default laravel ones
             }
 
@@ -179,6 +179,7 @@ class EventVisualizer
         ];
         $methods = [
             'dispatch',
+            'dispatchChain',
             'dispatchNow',
             'dispatchSync',
             'dispatchToQueue',

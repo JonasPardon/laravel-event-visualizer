@@ -32,9 +32,9 @@ final class VariableResolverTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             use Some\Namespace\SomeClass;
-            
+
             class ClassName
             {
                 public function someMethod()
@@ -54,9 +54,47 @@ final class VariableResolverTest extends TestCase
 
         $variable = $node->var;
 
-        $resolvedClass = $codeParser->resolveClassFromVariable($variable);
+        $resolvedClass = $codeParser->resolveClassesFromVariable($variable);
 
-        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
+        $this->assertCount(1, $resolvedClass);
+        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass[0]);
+    }
+
+    /** @test */
+    public function it_can_resolve_the_classes_of_a_variable_with_an_array_of_jobs(): void
+    {
+        $code = <<<'CODE'
+            <?php
+
+            use Some\Namespace\SomeClass;
+            use Some\Namespace\SomeOtherClass;
+            use \Bus;
+
+            class ClassName
+            {
+                public function someMethod()
+                {
+                    $chain = [new Some\Namespace\SomeClass(), new Some\Namespace\SomeOtherClass()];
+
+                    Bus::dispatchChain($chain);
+                }
+            }
+            CODE;
+
+        $codeParser = new CodeParser($code);
+        $syntaxTree = $this->parser->parse($code);
+        $nodes = $this->nodeTraverser->traverse($syntaxTree);
+
+        $node = $this->nodeFinder->findFirst($nodes, function (Node $node) {
+            return $node instanceof Assign;
+        });
+
+        $variable = $node->var;
+
+        $resolvedClasses = $codeParser->resolveClassesFromVariable($variable);
+
+        $this->assertCount(2, $resolvedClasses);
+        $this->assertEquals(['Some\Namespace\SomeClass', 'Some\Namespace\SomeOtherClass'], $resolvedClasses);
     }
 
     /** @test */
@@ -64,9 +102,9 @@ final class VariableResolverTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             use Some\Namespace\SomeClass;
-            
+
             class ClassName
             {
                 public function someMethod()
@@ -85,9 +123,10 @@ final class VariableResolverTest extends TestCase
         });
 
         $variable = $node->var;
-        $resolvedClass = $codeParser->resolveClassFromVariable($variable);
+        $resolvedClass = $codeParser->resolveClassesFromVariable($variable);
 
-        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
+        $this->assertCount(1, $resolvedClass);
+        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass[0]);
     }
 
     /** @test */
@@ -95,9 +134,9 @@ final class VariableResolverTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             use Some\Namespace\SomeClass as AliasName;
-            
+
             class ClassName
             {
                 public function someMethod()
@@ -117,9 +156,10 @@ final class VariableResolverTest extends TestCase
 
         $variable = $node->var;
 
-        $resolvedClass = $codeParser->resolveClassFromVariable($variable);
+        $resolvedClass = $codeParser->resolveClassesFromVariable($variable);
 
-        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
+        $this->assertCount(1, $resolvedClass);
+        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass[0]);
     }
 
     /** @test */
@@ -127,13 +167,13 @@ final class VariableResolverTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             class ClassName
             {
                 public function __construct(private \Some\Namespace\SomeClass $someVariable)
                 {
                 }
-                            
+
                 public function someMethod()
                 {
                     $this->someVariable->someMethod();
@@ -150,9 +190,10 @@ final class VariableResolverTest extends TestCase
             return $node instanceof Variable && $node->name === 'someVariable';
         });
 
-        $resolvedClass = $codeParser->resolveClassFromVariable($variable);
+        $resolvedClass = $codeParser->resolveClassesFromVariable($variable);
 
-        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
+        $this->assertCount(1, $resolvedClass);
+        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass[0]);
     }
 
     /** @test */
@@ -160,15 +201,15 @@ final class VariableResolverTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             use Some\Namespace\SomeClass;
-            
+
             class ClassName
             {
                 public function __construct(private SomeClass $someVariable)
                 {
                 }
-                            
+
                 public function someMethod()
                 {
                     $this->someVariable->someMethod();
@@ -185,9 +226,10 @@ final class VariableResolverTest extends TestCase
             return $node instanceof Variable && $node->name === 'someVariable';
         });
 
-        $resolvedClass = $codeParser->resolveClassFromVariable($variable);
+        $resolvedClass = $codeParser->resolveClassesFromVariable($variable);
 
-        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
+        $this->assertCount(1, $resolvedClass);
+        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass[0]);
     }
 
     /** @test */
@@ -195,7 +237,7 @@ final class VariableResolverTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             class ClassName
             {
                 public function someMethod(\Some\Namespace\SomeClass $someVariable)
@@ -214,9 +256,10 @@ final class VariableResolverTest extends TestCase
             return $node instanceof Variable && $node->name === 'someVariable';
         });
 
-        $resolvedClass = $codeParser->resolveClassFromVariable($variable);
+        $resolvedClass = $codeParser->resolveClassesFromVariable($variable);
 
-        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
+        $this->assertCount(1, $resolvedClass);
+        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass[0]);
     }
 
     /** @test */
@@ -224,9 +267,9 @@ final class VariableResolverTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             use Some\Namespace\SomeClass;
-            
+
             class ClassName
             {
                 public function someMethod(SomeClass $someVariable)
@@ -245,8 +288,9 @@ final class VariableResolverTest extends TestCase
             return $node instanceof Variable && $node->name === 'someVariable';
         });
 
-        $resolvedClass = $codeParser->resolveClassFromVariable($variable);
+        $resolvedClass = $codeParser->resolveClassesFromVariable($variable);
 
-        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass);
+        $this->assertCount(1, $resolvedClass);
+        $this->assertEquals('Some\Namespace\SomeClass', $resolvedClass[0]);
     }
 }
