@@ -91,6 +91,31 @@ class EventVisualizer
                 $this->analyseClass($listener);
             }
         }
+
+        foreach (array_keys($events) as $event) {
+            if ($this->isIgnored($event)) {
+                continue;
+            }
+
+            if (! $this->showLaravelEvents && ! Str::startsWith($event, 'App')) {
+                continue; // Get only our own events, not the default laravel ones
+            }
+
+            foreach (array_keys($events) as $interface) {
+                if ($this->isIgnored($interface)) {
+                    continue;
+                }
+
+                if (! is_subclass_of($event, $interface)) {
+                    continue;
+                }
+
+                $this->connectNodes(
+                    from: new Event($interface),
+                    to: new Event($event),
+                );
+            }
+        }
     }
 
     private function analyseClass(string $className): void
