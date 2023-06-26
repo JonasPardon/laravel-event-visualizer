@@ -18,7 +18,7 @@
     "require": {
         "php": "^8.1",
         "illuminate/contracts": "^9.0|^10.0",
-        "jonaspardon/mermaid-php": "^0.2.0@alpha",
+        "jonaspardon/mermaid-php": "^1.0.0",
         "nikic/php-parser": "^4.13",
         "spatie/laravel-package-tools": "^1.9.2"
     },
