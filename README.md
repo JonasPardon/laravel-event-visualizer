@@ -8,25 +8,25 @@
 
 Laravel package to visualize events with their handlers, including jobs to chain them together.
 
-<img src="./example.png" />
+<img src="./example.png"  alt="Example" />
 
 ## Installation
 
 You will need PHP 8.1 or higher.
 
-You can install the package via composer:
+Install the package via composer:
 
 ```bash
 composer require jonaspardon/laravel-event-visualizer --dev
 ```
 
-You can publish the config file with:
+Publish the config file with:
 
 ```bash
 php artisan vendor:publish --tag="event-visualizer-config"
 ```
 
-You can publish the views with:
+Publish the views with:
 
 ```bash
 php artisan vendor:publish --tag="event-visualizer-views"
@@ -45,8 +45,6 @@ For every event/job found, the same AST traversal will be done recursively until
 
 ## Supported
 
-Auto discovery of events and jobs might still fail. If you encounter errors, please open an issue.
-
 | Syntax                                                           | Supported? |
 |------------------------------------------------------------------|------------|
 | `\Event` facade static call                                      | ✅          |
@@ -57,7 +55,7 @@ Auto discovery of events and jobs might still fail. If you encounter errors, ple
 | `\Illuminate\Contracts\Bus\Dispatcher` injected variable call    | ✅          |
 | `event(...)` helper                                              | ✅          |
 | `dispatch(...)` helper                                           | ✅          |
-| Bus chains                                                       | ❌ (WIP)    |
+| Bus chains                                                       | ❌          |
 
 For dependency injection, both constructor and method injection are supported.
 
@@ -71,22 +69,11 @@ Passing variables (`Event::dispatch($event)` as opposed to `Event::dispatch(new 
 composer test
 ```
 
-## Changelog
-
-Please see [CHANGELOG](CHANGELOG.md) for more information on what has changed recently.
-
 ## Contributing
 
-Please see [CONTRIBUTING](https://github.com/spatie/.github/blob/main/CONTRIBUTING.md) for details.
+Contributions are welcome. 
 
-## Security Vulnerabilities
-
-Please review [our security policy](../../security/policy) on how to report security vulnerabilities.
-
-## Credits
-
-- [Jonas Pardon](https://github.com/JonasPardon)
-- [All Contributors](../../contributors)
+When sending in a PR, please make sure to add/modify tests for the code you touch.
 
 ## License
 
