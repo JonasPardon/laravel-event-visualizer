@@ -171,7 +171,14 @@ class CodeParser
             }
 
             if ($assignmentNode->expr instanceof Array_) {
-                array_push($classes, ...collect($assignmentNode->expr->items)->map(fn (ArrayItem $item) => $this->getFullyQualifiedClassName($item->value->class->toString()))->all());
+                array_push(
+                    $classes,
+                    ...collect($assignmentNode->expr->items)
+                        ->map(function (ArrayItem $item) {
+                            return $this->getFullyQualifiedClassName($item->value->class->toString());
+                        })
+                        ->all()
+                );
             }
 
             // todo: handle other types of assignments
@@ -220,7 +227,11 @@ class CodeParser
         }
 
         if ($argument->value instanceof Array_) {
-            return collect($argument->value->items)->map(fn (ArrayItem $item) => $this->getFullyQualifiedClassName($item->value->class->toString()))->all();
+            return collect($argument->value->items)
+                ->map(function (ArrayItem $item) {
+                    return $this->getFullyQualifiedClassName($item->value->class->toString());
+                })
+                ->all();
         }
 
         return [];
