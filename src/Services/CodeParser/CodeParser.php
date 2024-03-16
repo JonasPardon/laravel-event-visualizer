@@ -15,6 +15,7 @@ use PhpParser\Node\Expr\New_;
 use PhpParser\Node\Expr\PropertyFetch;
 use PhpParser\Node\Expr\StaticCall;
 use PhpParser\Node\Expr\Variable;
+use PhpParser\Node\Identifier;
 use PhpParser\Node\Name\FullyQualified;
 use PhpParser\Node\Stmt\ClassMethod;
 use PhpParser\Node\Stmt\Expression;
@@ -24,6 +25,7 @@ use PhpParser\NodeFinder;
 use PhpParser\NodeTraverser;
 use PhpParser\Parser;
 use PhpParser\ParserFactory;
+use Throwable;
 
 class CodeParser
 {
@@ -129,6 +131,7 @@ class CodeParser
         $calls = $this->nodeFinder->find($this->nodes, function (Node $node) use ($functionName) {
             return $node instanceof Expression &&
                 $node->expr instanceof FuncCall &&
+                $node->expr->name instanceof \PhpParser\Node\Name &&
                 $node->expr->name->toString() === $functionName;
         });
 

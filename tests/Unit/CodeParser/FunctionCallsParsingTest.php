@@ -13,11 +13,11 @@ final class FunctionCallsParsingTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             namespace App\Domain\SomeDomain;
-            
+
             use App\Events\SomeEvent;
-            
+
             class SomeClass
             {
                 public function handle(): void
@@ -48,11 +48,11 @@ final class FunctionCallsParsingTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             namespace App\Domain\SomeDomain;
-            
+
             use App\Events\SomeJob;
-            
+
             class SomeClass
             {
                 public function handle(): void
@@ -83,15 +83,52 @@ final class FunctionCallsParsingTest extends TestCase
     {
         $code = <<<'CODE'
             <?php
-            
+
             namespace App\Domain\SomeDomain;
-            
+
             use App\Events\SomeJob;
-            
+
             class SomeClass
             {
                 public function handle(): void
                 {
+                    dispatch_sync(new SomeJob());
+                }
+            }
+            CODE;
+
+        $codeParser = new CodeParser($code);
+
+        $helperCalls = $codeParser->getFunctionCalls('dispatch_sync');
+
+        $expectedHelperCall = new ResolvedCall(
+            dispatcherClass: 'none',
+            dispatchedClass: 'App\Events\SomeJob',
+            method: 'dispatch_sync',
+        );
+
+        $this->assertCount(1, $helperCalls);
+        $this->assertEquals($expectedHelperCall->dispatcherClass, $helperCalls[0]->dispatcherClass);
+        $this->assertEquals($expectedHelperCall->method, $helperCalls[0]->method);
+        $this->assertEquals($expectedHelperCall->dispatchedClass, $helperCalls[0]->dispatchedClass);
+    }
+
+
+    /** @test */
+    public function it_handles_usage_of_invokable_actions(): void
+    {
+        $code = <<<'CODE'
+            <?php
+
+            namespace App\Domain\SomeDomain;
+
+            use App\Events\SomeJob;
+
+            class SomeClass
+            {
+                public function handle(): void
+                {
+                    (resolve(SomeInvokableAction::class))('param');
                     dispatch_sync(new SomeJob());
                 }
             }
