@@ -129,13 +129,10 @@ class CodeParser
     public function getFunctionCalls(string $functionName): array
     {
         $calls = $this->nodeFinder->find($this->nodes, function (Node $node) use ($functionName) {
-            try{
-                return $node instanceof Expression &&
-                    $node->expr instanceof FuncCall &&
-                    $node->expr->name->toString() === $functionName;
-            } catch (Throwable) {
-                return false;
-            }
+            return $node instanceof Expression &&
+                $node->expr instanceof FuncCall &&
+                $node->expr->name instanceof \PhpParser\Node\Name &&
+                $node->expr->name->toString() === $functionName;
         });
 
         return collect($calls)->map(function (Expression $node) use ($functionName) {
