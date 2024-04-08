@@ -17,15 +17,15 @@
     ],
     "require": {
         "php": "^8.1",
-        "illuminate/contracts": "^9.0|^10.0",
+        "illuminate/contracts": "^9.0|^10.0|^11.0",
         "jonaspardon/mermaid-php": "^1.0.0",
         "nikic/php-parser": "^4.13",
         "spatie/laravel-package-tools": "^1.9.2"
     },
     "require-dev": {
         "friendsofphp/php-cs-fixer": "^3.8",
+        "larastan/larastan": "^2.0",
         "nunomaduro/collision": "^6.0",
-        "nunomaduro/larastan": "^2.0.1",
         "orchestra/testbench": "^7.0",
         "pestphp/pest": "^1.21",
         "pestphp/pest-plugin-laravel": "^1.1",
